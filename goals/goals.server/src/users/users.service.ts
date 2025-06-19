@@ -6,13 +6,13 @@ export class UsersService {
     private users: User[] = [];
 
     // To be surrounded by a transaction
-    createUser(email: string, password: string): number {
-        if (this.users.find(user => user.email === email) !== undefined) {
-            return -1; // User already exists
+    createUser(email: string, password: string): string | undefined {
+        if (this.users.find(user => user.email === email)) {
+            return undefined;
         }
 
         const user = new User();
-        user.id = this.users.length + 1;
+        user.id = (this.users.length + 1).toString();
         user.email = email;
         user.password = password;
 
@@ -20,7 +20,7 @@ export class UsersService {
         return user.id;
     }
 
-    findUserById(id: number): User | undefined {
+    findUserById(id: string): User | undefined {
         return this.users.find(user => user.id === id);
     }
 

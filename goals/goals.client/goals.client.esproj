@@ -10,5 +10,6 @@
   <ItemGroup>
     <Folder Include="dist\goals.client\browser\" />
     <Folder Include="public\" />
+    <Folder Include="src\app\components\" />
   </ItemGroup>
 </Project>

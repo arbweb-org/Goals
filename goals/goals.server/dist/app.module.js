@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const serve_static_1 = require("@nestjs/serve-static");
 const path_1 = require("path");
 const users_module_1 = require("./users/users.module");
+const goals_module_1 = require("./goals/goals.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -18,9 +19,10 @@ exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
             serve_static_1.ServeStaticModule.forRoot({
-                rootPath: (0, path_1.join)(__dirname, '..', 'public'),
+                rootPath: (0, path_1.join)(__dirname, '..', 'public/browser'),
             }),
             users_module_1.UsersModule,
+            goals_module_1.GoalsModule,
         ],
         controllers: [],
         providers: [],

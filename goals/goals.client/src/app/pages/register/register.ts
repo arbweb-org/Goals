@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-register',
@@ -13,7 +14,7 @@ export class Register {
   password = '';
   message = '';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) { }
 
   register() {
     const user = {
@@ -23,8 +24,14 @@ export class Register {
 
     this.message = 'Please wait...';
     this.http.post('/api/users/register', user, { responseType: 'text' }).subscribe({
-      next: (res) => this.message = res,
-      error: (err) => this.message = err.error
+      next: (res) => {
+        this.message = res;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.message = err.error;
+        this.cdr.detectChanges();
+      }
     });
   }
 }

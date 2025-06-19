@@ -22,7 +22,7 @@ let UsersController = class UsersController {
     }
     register(body) {
         const id = this.usersService.createUser(body.email, body.password);
-        if (id === -1) {
+        if (!id) {
             throw new common_1.ConflictException('User already exists');
         }
         return `User registered successfully with ID: ${id}`;

@@ -9,7 +9,7 @@ export class UsersController {
     register(@Body() body: { email: string; password: string }): string {
         const id = this.usersService.createUser(body.email, body.password);
 
-        if (id === -1) {
+        if (!id) {
             throw new ConflictException('User already exists');
         }
 

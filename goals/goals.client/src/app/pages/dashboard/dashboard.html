@@ -1,0 +1,28 @@
+<h2>Your Goals</h2>
+<br />
+
+<a href="/">Public goals</a>
+<br />
+
+<a href="#">Sign out</a>
+<br />
+<br />
+
+<div *ngFor="let goal of goals" style="width:400px">
+  <div class="container" [style.marginLeft.px]="goal.level * 20">
+    <div class="item" id="{{ goal.level + '-' + goal.id }}" draggable="true"
+         (dragstart)="onDragStart($event)" (dragover)="onDragOver($event)" (drop)="onDropNest($event)">
+      <div>{{ goal.title }}</div>
+
+      <div>
+        <a href="#">Edit</a>
+        &nbsp;
+        <a href="#">Delete</a>
+      </div>
+    </div>
+
+    <div class="separator" id="{{ 's-' + goal.id }}"
+         (dragover)="onDragOver($event)" (drop)="onDropOrder($event)">&nbsp;</div>
+  </div>
+</div>
+

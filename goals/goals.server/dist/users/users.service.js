@@ -12,11 +12,11 @@ const user_entity_1 = require("./user.entity");
 let UsersService = class UsersService {
     users = [];
     createUser(email, password) {
-        if (this.users.find(user => user.email === email) !== undefined) {
-            return -1;
+        if (this.users.find(user => user.email === email)) {
+            return undefined;
         }
         const user = new user_entity_1.User();
-        user.id = this.users.length + 1;
+        user.id = (this.users.length + 1).toString();
         user.email = email;
         user.password = password;
         this.users.push(user);
