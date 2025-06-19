@@ -1,0 +1,20 @@
+<h2>Register</h2>
+
+<p>{{ message }}</p>
+
+<label>
+  Email:
+  <input type="email" [(ngModel)]="email">
+</label>
+<br /><br />
+
+<label>
+  Password:
+  <input type="password" [(ngModel)]="password">
+</label>
+<br /><br />
+
+<button (click)="register()">Register</button>
+<br /><br />
+
+<a href="/login">Have an account? login here</a>

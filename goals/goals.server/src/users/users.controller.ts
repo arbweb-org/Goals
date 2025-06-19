@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Query, Body } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Query, Body, ConflictException } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('api/users')
@@ -10,7 +10,7 @@ export class UsersController {
         const id = this.usersService.createUser(body.email, body.password);
 
         if (id === -1) {
-            return 'User already exists!';
+            throw new ConflictException('User already exists');
         }
 
         return `User registered successfully with ID: ${id}`;
