@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Query, Body, ConflictException } from '@nestjs/common';
+import { Controller, Post, Body, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('api/users')
@@ -20,13 +20,12 @@ export class UsersController {
     login(@Body() body: { email: string; password: string }): string {
         const user = this.usersService.findUserByEmail(body.email);
 
-        // if user undefined
         if (!user) {
-            return 'Invalid credentials!';
+            throw new UnauthorizedException('Invalid credentials!');
         }
 
         if (user.password !== body.password) {
-            return 'Invalid credentials!';
+            throw new UnauthorizedException('Invalid credentials!');
         }
 
         return 'User logged in successfully!';

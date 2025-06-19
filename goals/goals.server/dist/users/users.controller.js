@@ -30,10 +30,10 @@ let UsersController = class UsersController {
     login(body) {
         const user = this.usersService.findUserByEmail(body.email);
         if (!user) {
-            return 'Invalid credentials!';
+            throw new common_1.UnauthorizedException('Invalid credentials!');
         }
         if (user.password !== body.password) {
-            return 'Invalid credentials!';
+            throw new common_1.UnauthorizedException('Invalid credentials!');
         }
         return 'User logged in successfully!';
     }
