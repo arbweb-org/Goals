@@ -8,8 +8,8 @@ export class Goal {
     @Column()
     title: string;
 
-    @Column({ nullable: true })
-    description: string | null;
+    @Column()
+    description: string;
 
     @Column()
     deadline: Date;
@@ -17,16 +17,16 @@ export class Goal {
     @Column({ default: false })
     isPublic: boolean;
 
-    @Column({ nullable: true })
-    parentId: string | null;
+    @Column({ default: '0' })
+    parentId: string;
 
-    @Column()
+    @Column({ default: 0 })
     order: number;
 
-    @Column({ nullable: true })
-    publicId: string | null;
+    @Column({ default: '' })
+    publicId: string;
 
-    @Column()
+    @Column({ default: '' })
     ownerId: string;
 
     @CreateDateColumn()

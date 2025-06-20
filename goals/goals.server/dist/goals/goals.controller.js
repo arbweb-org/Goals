@@ -15,61 +15,87 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.GoalsController = void 0;
 const common_1 = require("@nestjs/common");
 const goals_service_1 = require("./goals.service");
-const goal_entity_1 = require("./goal.entity");
 let GoalsController = class GoalsController {
     goalsService;
     constructor(goalsService) {
         this.goalsService = goalsService;
     }
-    createGoal(goal) {
-        const id = this.goalsService.createGoal(goal);
-        return { id };
+    async getPublicGoals() {
+        return await this.goalsService.findAll(true);
     }
-    getAllGoals() {
-        return this.goalsService.findAll();
+    async getPrivateGoals() {
+        return await this.goalsService.findAll(false);
     }
-    updateGoal(goal) {
-        const updated = this.goalsService.updateGoal(goal);
-        if (!updated) {
-            throw new common_1.NotFoundException('Goal not found');
-        }
+    async createGoal(goal) {
+        await this.goalsService.createGoal(goal);
         return { success: true };
     }
-    deleteGoal(id) {
-        const deleted = this.goalsService.deleteGoal(id);
-        if (!deleted) {
-            throw new common_1.NotFoundException('Goal not found');
-        }
+    async updateGoal(goal) {
+        await this.goalsService.updateGoal(goal);
+        return { success: true };
+    }
+    async nestGoal(sourceId, targetId) {
+        await this.goalsService.nestGoal(sourceId, targetId);
+        return { success: true };
+    }
+    async reorderGoal(sourceId, targetId) {
+        await this.goalsService.reorderGoal(sourceId, targetId);
+        return { success: true };
+    }
+    async deleteGoal(id) {
+        await this.goalsService.deleteGoal(id);
         return { success: true };
     }
 };
 exports.GoalsController = GoalsController;
 __decorate([
+    (0, common_1.Get)('public'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], GoalsController.prototype, "getPublicGoals", null);
+__decorate([
+    (0, common_1.Get)('private'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], GoalsController.prototype, "getPrivateGoals", null);
+__decorate([
     (0, common_1.Post)('create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [goal_entity_1.Goal]),
-    __metadata("design:returntype", Object)
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "createGoal", null);
-__decorate([
-    (0, common_1.Get)('list'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Array)
-], GoalsController.prototype, "getAllGoals", null);
 __decorate([
     (0, common_1.Put)('update'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [goal_entity_1.Goal]),
-    __metadata("design:returntype", Object)
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "updateGoal", null);
 __decorate([
-    (0, common_1.Delete)('delete:id'),
+    (0, common_1.Put)('nest/:sourceId/:targetId'),
+    __param(0, (0, common_1.Param)('sourceId')),
+    __param(1, (0, common_1.Param)('targetId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], GoalsController.prototype, "nestGoal", null);
+__decorate([
+    (0, common_1.Put)('reorder/:sourceId/:targetId'),
+    __param(0, (0, common_1.Param)('sourceId')),
+    __param(1, (0, common_1.Param)('targetId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], GoalsController.prototype, "reorderGoal", null);
+__decorate([
+    (0, common_1.Delete)('delete/:id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Object)
+    __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "deleteGoal", null);
 exports.GoalsController = GoalsController = __decorate([
     (0, common_1.Controller)('api/goals'),

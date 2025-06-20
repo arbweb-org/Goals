@@ -12,12 +12,34 @@ const serve_static_1 = require("@nestjs/serve-static");
 const path_1 = require("path");
 const users_module_1 = require("./users/users.module");
 const goals_module_1 = require("./goals/goals.module");
+const typeorm_1 = require("@nestjs/typeorm");
+const config_1 = require("@nestjs/config");
+const user_entity_1 = require("./users/user.entity");
+const goal_entity_1 = require("./goals/goal.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+            }),
+            typeorm_1.TypeOrmModule.forRootAsync({
+                imports: [config_1.ConfigModule],
+                useFactory: (config) => ({
+                    type: 'postgres',
+                    host: 'localhost',
+                    port: 5432,
+                    username: 'postgres',
+                    password: '06sL5U5h',
+                    database: 'goalsdb',
+                    entities: [user_entity_1.User, goal_entity_1.Goal],
+                    synchronize: true,
+                }),
+                inject: [config_1.ConfigService],
+            }),
+            typeorm_1.TypeOrmModule.forFeature([goal_entity_1.Goal]),
             serve_static_1.ServeStaticModule.forRoot({
                 rootPath: (0, path_1.join)(__dirname, '..', 'public/browser'),
             }),

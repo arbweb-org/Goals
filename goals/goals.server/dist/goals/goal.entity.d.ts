@@ -1,12 +1,12 @@
 export declare class Goal {
     id: string;
     title: string;
-    description: string | null;
+    description: string;
     deadline: Date;
     isPublic: boolean;
-    parentId: string | null;
+    parentId: string;
     order: number;
-    publicId: string | null;
+    publicId: string;
     ownerId: string;
     createdAt: Date;
 }

@@ -8,16 +8,36 @@
 <br />
 <br />
 
+<div style="border: 1px solid black; padding: 10px">
+  <div>{{ isEditing? 'Edit goal': 'Create new goal' }}</div>
+
+  <input [(ngModel)]="newGoal.title" placeholder="Title" />&nbsp;
+  <input [(ngModel)]="newGoal.description" placeholder="Description" />&nbsp;
+  <input [(ngModel)]="newGoal.deadline" type="date" />&nbsp;
+
+  <button (click)="createGoal()" *ngIf="!isEditing">Create</button>&nbsp;
+  <button (click)="updateGoal()" *ngIf="isEditing">Save</button>&nbsp;
+
+  <button onclick="window.location.reload()">Cancel</button>
+</div>
+<br /><br />
+
+<div *ngIf="isLoading">Loading...</div>
 <div *ngFor="let goal of goals" style="width:400px">
-  <div class="container" [style.marginLeft.px]="goal.level * 20">
+  <div class="container" [style.marginLeft.px]="(goal.level ?? 0) * 20">
     <div class="item" id="{{ goal.level + '-' + goal.id }}" draggable="true"
          (dragstart)="onDragStart($event)" (dragover)="onDragOver($event)" (drop)="onDropNest($event)">
-      <div>{{ goal.title }}</div>
+      <div>
+        <span>{{ goal.order }}</span>&nbsp;
+        <span>{{ goal.title }}</span><br />
+        <span>{{ goal.description }}</span>&nbsp;&nbsp;
+        <span>{{ goal.deadline }}</span>
+      </div>
 
       <div>
-        <a href="#">Edit</a>
+        <a href="#" id="{{ 'e-' + goal.id }}" (click)="editGoalClicked($event)">Edit</a>
         &nbsp;
-        <a href="#">Delete</a>
+        <a href="#" id="{{ 'd-' + goal.id }}" (click)="deleteGoal($event)">Delete</a>
       </div>
     </div>
 

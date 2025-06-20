@@ -1,54 +1,120 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Goal } from './goal.entity';
 
 @Injectable()
 export class GoalsService {
-    private goals: Goal[] = [];
-    createGoal(goal: Goal): string {
-        goal.id = Math.random().toString(36).substring(2, 15);
-        goal.order = this.goals.length + 1;
+    constructor(@InjectRepository(Goal) private goalRepo: Repository<Goal>) { }
 
-        this.goals.push(goal);
-        return goal.id;
+    async findAll(isPublic: boolean): Promise<Goal[]> {
+        return await this.goalRepo.find({ where: { isPublic: isPublic } });
     }
 
-    findAll(): Goal[] {
-        const myGoal: Goal = {
-            id: '1',
-            title: 'Sample Goal',
-            description: null,
-            deadline: new Date('2026-12-31'),
-            isPublic: true,
-            parentId: null,
-            order: 1,
-            publicId: null,
-            ownerId: 'ownerGuid',
-            createdAt: new Date(),
-        };
-        this.goals.push(myGoal);
-        return this.goals;
+    async createGoal(goalData: Partial<Goal>): Promise<boolean> {
+        goalData.parentId = '0';
+
+        const lastGoal = await this.goalRepo.findOne({
+            where: { parentId: goalData.parentId },
+            order: { order: 'DESC' },
+        });
+
+        goalData.order = lastGoal ? lastGoal.order + 1 : 0;
+        const goal = this.goalRepo.create(goalData);
+        await this.goalRepo.save(goal);
+        return true;
     }
 
-    updateGoal(goal: Goal): boolean {
-        const existingGoal = this.goals.find(g => g.id === goal.id);
+    async updateGoal(goalData: Partial<Goal>): Promise<boolean> {
+        const existingGoal = await this.goalRepo.findOne({ where: { id: goalData.id } });
         if (!existingGoal) {
             return false;
         }
 
-        existingGoal.order = goal.order;
-        existingGoal.title = goal.title;
-        existingGoal.description = goal.description;
-       
+        existingGoal.title = goalData.title ?? '';
+        existingGoal.description = goalData.description ?? '';
+        existingGoal.deadline = goalData.deadline ?? new Date();
+               
+        await this.goalRepo.save(existingGoal);
         return true;
     }
 
-    deleteGoal(id: string): boolean {
-        const index = this.goals.findIndex(g => g.id === id);
-        if (index === -1) {
+    async nestGoal(sourceId: string, targetId: string): Promise<boolean> {
+        if (sourceId === targetId) {
+            return false; // Cannot nest a goal under itself
+        }
+
+        const sourceGoal = await this.goalRepo.findOne({ where: { id: sourceId } });
+        const targetGoal = await this.goalRepo.findOne({ where: { id: targetId } });
+
+        if (!sourceGoal || !targetGoal) {
             return false;
         }
-        
-        this.goals.splice(index, 1);
+        if (sourceGoal.parentId === targetId) {            
+            return false; // Already nested under the target
+        }
+        if (targetGoal.parentId === sourceId) {
+            return false; // Cannot nest a goal under its child.
+        }
+        if (targetGoal.parentId !== '0') { // Target has a parent
+            const targetParent = await this.goalRepo.findOne({ where: { id: targetGoal.parentId } });
+            if (targetParent && targetParent.parentId !== '0') { // Target has a grandparent
+                return false; // Cannot nest more than 2 levels deep
+            }
+        }
+
+        const lastGoal = await this.goalRepo.findOne({
+            where: { parentId: targetId },
+            order: { order: 'DESC' },
+        });
+
+        sourceGoal.order = lastGoal ? lastGoal.order + 1 : 0;
+        sourceGoal.parentId = targetId;
+        await this.goalRepo.save(sourceGoal);
+        return true;
+    }
+
+    async reorderGoal(sourceId: string, targetId: string): Promise<boolean> {
+        const sourceGoal = await this.goalRepo.findOne({ where: { id: sourceId } });
+        const targetGoal = await this.goalRepo.findOne({ where: { id: targetId } });
+
+        if (!sourceGoal || !targetGoal) { return false; }
+        if (sourceGoal.id === targetGoal.id) { return false; }
+        if (sourceGoal.parentId !== targetGoal.parentId) { return false; }
+        if (sourceGoal.order === targetGoal.order + 1) { return false; }
+
+        // Load all sibling goals
+        let siblings = await this.goalRepo.find({
+            where: { parentId: targetGoal.parentId },
+            order: { order: 'ASC' }
+        });
+
+        siblings = siblings.filter(g => g.id !== sourceGoal.id);
+        const targetIndex = siblings.findIndex(g => g.id === targetGoal.id);
+        siblings.splice(targetIndex + 1, 0, sourceGoal);
+
+        for (let i = 0; i < siblings.length; i++) {
+            siblings[i].order = i;
+        }
+
+        await this.goalRepo.save(siblings);
+        return true;
+    }
+
+    // To be surrounded with transaction
+    async deleteGoal(id: string): Promise<boolean> { 
+        return await this.deleteGoalTree(id);
+    }
+
+    async deleteGoalTree(id: string): Promise<boolean> {
+        const children = await this.goalRepo.find({ where: { parentId: id } });
+        if (children.length !== 0) {
+            for (const goal of children) {
+                await this.deleteGoalTree(goal.id);
+            }
+        }
+
+        await this.goalRepo.delete(id);
         return true;
     }
 }

@@ -6,32 +6,43 @@ import { Goal } from './goal.entity';
 export class GoalsController {
     constructor(private readonly goalsService: GoalsService) { }
 
+    @Get('public')
+    async getPublicGoals(): Promise<Goal[]> {
+        return await this.goalsService.findAll(true);
+    }
+
+    @Get('private')
+    async getPrivateGoals(): Promise<Goal[]> {
+        return await this.goalsService.findAll(false);
+    }
+
     @Post('create')
-    createGoal(@Body() goal: Goal): { id: string } {
-        const id = this.goalsService.createGoal(goal);
-        return { id };
-    }
-
-    @Get('list')
-    getAllGoals(): Goal[] {
-        return this.goalsService.findAll();
-    }
-
-    @Put('update')
-    updateGoal(@Body() goal: Goal): { success: boolean } {
-        const updated = this.goalsService.updateGoal(goal);
-        if (!updated) {
-            throw new NotFoundException('Goal not found');
-        }
+    async createGoal(@Body() goal: Partial<Goal>): Promise<{ success: boolean }> {
+        await this.goalsService.createGoal(goal);
         return { success: true };
     }
 
-    @Delete('delete:id')
-    deleteGoal(@Param('id') id: string): { success: boolean } {
-        const deleted = this.goalsService.deleteGoal(id);
-        if (!deleted) {
-            throw new NotFoundException('Goal not found');
-        }
+    @Put('update')
+    async updateGoal(@Body() goal: Partial<Goal>): Promise<{ success: boolean }> {
+        await this.goalsService.updateGoal(goal);
+        return { success: true };
+    }
+
+    @Put('nest/:sourceId/:targetId')
+    async nestGoal(@Param('sourceId') sourceId: string, @Param('targetId') targetId: string): Promise<{ success: boolean }> {
+        await this.goalsService.nestGoal(sourceId, targetId);
+        return { success: true };
+    }
+
+    @Put('reorder/:sourceId/:targetId')
+    async reorderGoal(@Param('sourceId') sourceId: string, @Param('targetId') targetId: string): Promise<{ success: boolean }> {
+        await this.goalsService.reorderGoal(sourceId, targetId);
+        return { success: true };
+    }
+
+    @Delete('delete/:id')
+    async deleteGoal(@Param('id') id: string): Promise<{ success: boolean }> {
+        await this.goalsService.deleteGoal(id);
         return { success: true };
     }
 }

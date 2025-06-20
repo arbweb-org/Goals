@@ -3,14 +3,21 @@ import { Goal } from './goal.entity';
 export declare class GoalsController {
     private readonly goalsService;
     constructor(goalsService: GoalsService);
-    createGoal(goal: Goal): {
-        id: string;
-    };
-    getAllGoals(): Goal[];
-    updateGoal(goal: Goal): {
+    getPublicGoals(): Promise<Goal[]>;
+    getPrivateGoals(): Promise<Goal[]>;
+    createGoal(goal: Partial<Goal>): Promise<{
         success: boolean;
-    };
-    deleteGoal(id: string): {
+    }>;
+    updateGoal(goal: Partial<Goal>): Promise<{
         success: boolean;
-    };
+    }>;
+    nestGoal(sourceId: string, targetId: string): Promise<{
+        success: boolean;
+    }>;
+    reorderGoal(sourceId: string, targetId: string): Promise<{
+        success: boolean;
+    }>;
+    deleteGoal(id: string): Promise<{
+        success: boolean;
+    }>;
 }

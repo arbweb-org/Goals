@@ -1,62 +1,117 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ChangeDetectorRef } from '@angular/core';
 
 export interface Goal {
-  id: string;
+  id?: string;
   title: string;
-  parentId: string;
-  order: number;
-  level: number;
+  description: string;
+  deadline: Date;
+  parentId?: string;
+  order?: number;
+  level?: number;
 }
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
 export class Dashboard {
-  goals: Goal[] = [];
-  newGoal: Goal = { id: '', title: '', parentId: '', order: 0, level: 0 };
-  message = '';
+  isLoading = true;
+  isEditing = false;
 
-  constructor(private http: HttpClient) {
+  goals: Goal[] = [];
+  newGoal: Goal = {
+    title: '',
+    description: '',
+    deadline: new Date(),
+  };
+
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
     this.loadGoals();
   }
 
   async loadGoals() {
-    let goals: Goal[] = [];
-
-    goals.push({ id: '1', title: 'Goal 1', parentId: '0', order: 0, level: 0 });
-    goals.push({ id: '1.1', title: 'Sub Goal 1.1', parentId: '1', order: 0, level: 0 });
-    goals.push({ id: '1.1.2', title: 'Sub Goal 1.1.2', parentId: '1.1', order: 0, level: 0 });
-    goals.push({ id: '2.2.1', title: 'Sub Goal 2.2.1', parentId: '2.2', order: 0, level: 0 });
-
-    goals.push({ id: '1.2', title: 'Sub Goal 1.2', parentId: '1', order: 0, level: 0 });
-    goals.push({ id: '1.2.1', title: 'Sub Goal 1.2.1', parentId: '1.2', order: 0, level: 0 });
-    goals.push({ id: '1.2.2', title: 'Sub Goal 1.2.2', parentId: '1.2', order: 0, level: 0 });
-
-    goals.push({ id: '2.2', title: 'Sub Goal 2.2', parentId: '2', order: 0, level: 0 });
-    goals.push({ id: '2.2.2', title: 'Sub Goal 2.2.2', parentId: '2.2', order: 0, level: 0 });
-
-    goals.push({ id: '2', title: 'Goal 2', parentId: '0', order: 0, level: 0 });
-    goals.push({ id: '2.1', title: 'Sub Goal 2.1', parentId: '2', order: 0, level: 0 });
-    goals.push({ id: '2.1.1', title: 'Sub Goal 2.1.1', parentId: '2.1', order: 0, level: 0 });
-    goals.push({ id: '1.1.1', title: 'Sub Goal 1.1.1', parentId: '1.1', order: 0, level: 0 });
-    goals.push({ id: '2.1.2', title: 'Sub Goal 2.1.2', parentId: '2.1', order: 0, level: 0 });
-
-    this.goals = this.sortedGoals(goals, '0', 0);
+    this.http.get<Goal[]>('/api/goals/private').subscribe(goals => {
+      this.goals = this.sortedGoals(goals, '0', 0);
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    });
   }
 
   sortedGoals(goals: Goal[], parentId: string, level: number): Goal[] {
     return goals
       .filter(g => g.parentId === parentId)
-      .sort((a, b) => a.order - b.order)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
       .flatMap(g => {
         g.level = level;
-        return [g, ...this.sortedGoals(goals, g.id, level + 1)];
+        return [g, ...this.sortedGoals(goals, (g.id ?? ''), level + 1)];
       });
+  }
+
+  createGoal() {
+    this.http.post<{ success: boolean }>('/api/goals/create', this.newGoal).subscribe(
+      {
+        next: (res) => {
+          window.location.reload();
+        },
+        error: (err) => {
+          alert('Error creating goal');
+        }
+      }
+    );
+  }
+
+  updateGoal() {
+    this.http.put<{ success: boolean }>('/api/goals/update', this.newGoal).subscribe(
+      {
+        next: (res) => {
+          window.location.reload();
+        },
+        error: (err) => {
+          alert('Error updating goal');
+        }
+      }
+    );
+  }
+
+  editGoalClicked(event: MouseEvent) {
+    event.preventDefault();
+    this.isEditing = true;
+
+    const elementId = (event.target as HTMLElement).id;
+    const id = elementId.substring(2);
+
+    const goal = this.goals.find(g => g.id === id);
+    if (goal) {
+      this.newGoal.title = goal.title;
+      this.newGoal.description = goal.description;
+      this.newGoal.deadline = goal.deadline;
+    }
+  }
+
+  deleteGoal(event: MouseEvent) {
+    event.preventDefault();
+
+    const elementId = (event.target as HTMLElement).id;
+    const id = elementId.substring(2);
+
+    this.http.delete<{ success: boolean }>(`/api/goals/delete/${id}`).subscribe(
+      {
+        next: (res) => {
+          alert('Goal deleted successfully');
+          window.location.reload();
+        },
+        error: (err) => {
+          alert('Error deleting goal');
+          window.location.reload();
+        }
+      }
+    );
   }
 
   // Drag and drop plain js
@@ -73,6 +128,7 @@ export class Dashboard {
 
   onDropNest(event: DragEvent) {
     event.preventDefault();
+
     const elementId = (event.target as HTMLElement).id;
     this.toId = elementId.substring(2);
     if (this.fromId === this.toId) {
@@ -84,17 +140,36 @@ export class Dashboard {
       return;
     }
 
-    alert('ok');
+    this.http.put<{ success: boolean }>(`/api/goals/nest/${this.fromId}/${this.toId}`, '').subscribe(
+      {
+        next: (res) => {
+          window.location.reload();
+        },
+        error: (err) => {
+          window.location.reload();
+        }
+      }
+    );
   }
 
   onDropOrder(event: DragEvent) {
     event.preventDefault();
+
     const elementId = (event.target as HTMLElement).id;
     this.toId = elementId.substring(2);
     if (this.fromId === this.toId) {
       return;
     }
 
-    alert('ok');
+    this.http.put<{ success: boolean }>(`/api/goals/reorder/${this.fromId}/${this.toId}`, '').subscribe(
+      {
+        next: (res) => {
+          window.location.reload();
+        },
+        error: (err) => {
+          window.location.reload();
+        }
+      }
+    );
   }
 }
