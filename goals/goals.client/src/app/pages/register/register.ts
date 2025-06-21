@@ -3,6 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ChangeDetectorRef } from '@angular/core';
 
+export interface User {
+  email: string;
+  password: string;
+}
+
 @Component({
   selector: 'app-register',
   imports: [FormsModule],
@@ -10,26 +15,22 @@ import { ChangeDetectorRef } from '@angular/core';
   styleUrl: './register.css'
 })
 export class Register {
-  email = '';
-  password = '';
+  user: User = { email: '', password: '' };
   message = '';
 
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) { }
 
   register() {
-    const user = {
-      email: this.email,
-      password: this.password
-    };
-
     this.message = 'Please wait...';
-    this.http.post('/api/users/register', user, { responseType: 'text' }).subscribe({
-      next: (res) => {
-        this.message = res;
+    this.http.post<User>('/api/users/register', this.user).subscribe({
+      next: (response: User) => {
+        this.message = '';
         this.cdr.detectChanges();
+        alert('Registration successful!');
+        window.location.href = '/login';
       },
-      error: (err) => {
-        this.message = err.error;
+      error: (error: any) => {
+        this.message = 'Registration failed: ' + (error.error?.message || 'Unknown error');
         this.cdr.detectChanges();
       }
     });

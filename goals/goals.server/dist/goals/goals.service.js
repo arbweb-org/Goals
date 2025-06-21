@@ -80,8 +80,18 @@ let GoalsService = class GoalsService {
     async reorderGoal(sourceId, targetId) {
         const sourceGoal = await this.goalRepo.findOne({ where: { id: sourceId } });
         const targetGoal = await this.goalRepo.findOne({ where: { id: targetId } });
-        if (!sourceGoal || !targetGoal)
+        if (!sourceGoal || !targetGoal) {
             return false;
+        }
+        if (sourceGoal.id === targetGoal.id) {
+            return false;
+        }
+        if (sourceGoal.parentId !== targetGoal.parentId) {
+            return false;
+        }
+        if (sourceGoal.order === targetGoal.order + 1) {
+            return false;
+        }
         let siblings = await this.goalRepo.find({
             where: { parentId: targetGoal.parentId },
             order: { order: 'ASC' }

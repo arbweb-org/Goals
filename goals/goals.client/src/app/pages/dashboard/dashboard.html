@@ -1,10 +1,13 @@
 <h2>Your Goals</h2>
 <br />
 
-<a href="/">Public goals</a>
+<a href="/">&lt;&nbsp;Home</a>
 <br />
 
-<a href="#">Sign out</a>
+<a href="/login">Login</a>
+<br />
+
+<a href="#" (click)="signOut($event)">Sign out</a>
 <br />
 <br />
 
@@ -20,7 +23,8 @@
 
   <button onclick="window.location.reload()">Cancel</button>
 </div>
-<br /><br />
+<br />
+<br />
 
 <div *ngIf="isLoading">Loading...</div>
 <div *ngFor="let goal of goals" style="width:400px">

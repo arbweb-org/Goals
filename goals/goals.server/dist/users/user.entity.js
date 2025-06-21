@@ -10,11 +10,21 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
+const crypto_1 = require("crypto");
 const typeorm_1 = require("typeorm");
 let User = class User {
     id;
     email;
-    password;
+    passwordHash;
+    set password(value) {
+        this.passwordHash = this.hash(value);
+    }
+    validatePassword(password) {
+        return this.passwordHash === this.hash(password);
+    }
+    hash(data) {
+        return (0, crypto_1.createHash)('sha256').update(data).digest('hex');
+    }
 };
 exports.User = User;
 __decorate([
@@ -28,7 +38,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], User.prototype, "password", void 0);
+], User.prototype, "passwordHash", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)()
 ], User);

@@ -1,17 +1,19 @@
 <h2>Register</h2>
 
-<p>{{ message }}</p>
+<a href="/">&lt;&nbsp;Home</a>
+<br /><br />
 
+<p>{{ message }}</p>
 <label>
   Email:
-  <input type="email" [(ngModel)]="email">
+  <input type="email" [(ngModel)]="user.email">
 </label>
 <br />
 <br />
 
 <label>
   Password:
-  <input type="password" [(ngModel)]="password">
+  <input type="password" [(ngModel)]="user.password">
 </label>
 <br />
 <br />

@@ -172,4 +172,12 @@ export class Dashboard {
       }
     );
   }
+
+  signOut(event: MouseEvent) {
+    event.preventDefault();
+
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    alert('You have been signed out');
+    window.location.href = '/login';
+  }
 }

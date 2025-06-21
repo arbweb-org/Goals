@@ -2,12 +2,16 @@ import { UsersService } from './users.service';
 export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
-    register(body: {
+    login(user: {
         email: string;
         password: string;
-    }): string;
-    login(body: {
+    }): Promise<{
+        success: boolean;
+    }>;
+    register(user: {
         email: string;
         password: string;
-    }): string;
+    }): Promise<{
+        success: boolean;
+    }>;
 }

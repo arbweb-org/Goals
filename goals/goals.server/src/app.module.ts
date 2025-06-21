@@ -31,6 +31,7 @@ import { Goal } from './goals/goal.entity';
             inject: [ConfigService],
         }),
         TypeOrmModule.forFeature([Goal]),
+        TypeOrmModule.forFeature([User]),
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'public/browser'),
         }),

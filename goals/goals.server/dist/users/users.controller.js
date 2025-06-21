@@ -20,39 +20,49 @@ let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
     }
-    register(body) {
-        const id = this.usersService.createUser(body.email, body.password);
-        if (!id) {
+    async login(user) {
+        if (!user.email || !user.password) {
+            throw new common_1.UnauthorizedException('Email and password are required!');
+        }
+        const foundUser = await this.usersService.findUserByEmail(user.email);
+        if (!foundUser) {
+            throw new common_1.UnauthorizedException('Invalid credentials!');
+        }
+        if (!foundUser.validatePassword(user.password)) {
+            throw new common_1.UnauthorizedException('Invalid credentials!');
+        }
+        return { success: true };
+    }
+    async register(user) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!user.email || !emailRegex.test(user.email)) {
+            throw new common_1.UnprocessableEntityException('Invalid email format');
+        }
+        if (!user.password || user.password.length < 6) {
+            throw new common_1.UnprocessableEntityException('Password must be at least 6 characters long');
+        }
+        const res = await this.usersService.createUser(user.email, user.password);
+        if (!res) {
             throw new common_1.ConflictException('User already exists');
         }
-        return `User registered successfully with ID: ${id}`;
-    }
-    login(body) {
-        const user = this.usersService.findUserByEmail(body.email);
-        if (!user) {
-            throw new common_1.UnauthorizedException('Invalid credentials!');
-        }
-        if (user.password !== body.password) {
-            throw new common_1.UnauthorizedException('Invalid credentials!');
-        }
-        return 'User logged in successfully!';
+        return { success: true };
     }
 };
 exports.UsersController = UsersController;
-__decorate([
-    (0, common_1.Post)('register'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", String)
-], UsersController.prototype, "register", null);
 __decorate([
     (0, common_1.Post)('login'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", String)
+    __metadata("design:returntype", Promise)
 ], UsersController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('register'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "register", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('api/users'),
     __metadata("design:paramtypes", [users_service_1.UsersService])

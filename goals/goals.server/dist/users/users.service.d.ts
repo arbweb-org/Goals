@@ -1,7 +1,9 @@
+import { Repository } from 'typeorm';
 import { User } from './user.entity';
 export declare class UsersService {
-    private users;
-    createUser(email: string, password: string): string | undefined;
-    findUserById(id: string): User | undefined;
-    findUserByEmail(email: string): User | undefined;
+    private userRepo;
+    constructor(userRepo: Repository<User>);
+    findUserById(id: string): Promise<User | null>;
+    findUserByEmail(email: string): Promise<User | null>;
+    createUser(email: string, password: string): Promise<boolean>;
 }

@@ -40,6 +40,7 @@ exports.AppModule = AppModule = __decorate([
                 inject: [config_1.ConfigService],
             }),
             typeorm_1.TypeOrmModule.forFeature([goal_entity_1.Goal]),
+            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User]),
             serve_static_1.ServeStaticModule.forRoot({
                 rootPath: (0, path_1.join)(__dirname, '..', 'public/browser'),
             }),

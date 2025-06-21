@@ -1,30 +1,40 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { User } from './user.entity';
 
 @Injectable()
 export class UsersService {
-    private users: User[] = [];
+    constructor(@InjectRepository(User) private userRepo: Repository<User>) { }
 
-    // To be surrounded by a transaction
-    createUser(email: string, password: string): string | undefined {
-        if (this.users.find(user => user.email === email)) {
-            return undefined;
+    async findUserById(id: string): Promise<User | null> {
+        const user = await this.userRepo.findOne({ where: { id: id } });
+        if (!user) {
+            return null; // User not found
         }
 
-        const user = new User();
-        user.id = (this.users.length + 1).toString();
+        return user;
+    }
+
+    async findUserByEmail(email: string): Promise<User | null> {
+        const user = await this.userRepo.findOne({ where: { email: email } });
+        if (!user) {
+            return null; // User not found
+        }
+
+        return user;
+    }
+
+    async createUser(email: string, password: string): Promise<boolean> {
+        if (await this.findUserByEmail(email)) {
+            return false; // User already exists
+        }
+
+        const user = this.userRepo.create();
         user.email = email;
-        user.password = password;
+        user.password = password; // Password is hashed in the User entity's password setter
 
-        this.users.push(user);
-        return user.id;
-    }
-
-    findUserById(id: string): User | undefined {
-        return this.users.find(user => user.id === id);
-    }
-
-    findUserByEmail(email: string): User | undefined {
-        return this.users.find(user => user.email === email);
+        await this.userRepo.save(user);   
+        return true;
     }
 }
