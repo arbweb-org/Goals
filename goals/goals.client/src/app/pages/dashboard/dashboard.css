@@ -1,5 +1,5 @@
-.container{
-
+.container {
+  width: 800px;
 }
 
 .item {
@@ -13,5 +13,5 @@
 }
 
 .separator {
-    height: 10px;
+    height: 20px;
 }

@@ -4,11 +4,20 @@ Personal goals manager built with nodejs and angular
 
 ## Features
 
+- Homepage lists public goals.
 - Dashboard for goals CRUD operations.
 - Reorder goals.
 - Nest goals.
 - Login and register.
 - Hash passwords.
+
+## Constraints
+
+- Prevent nesting deeper than 2 levels (at both client and server).
+- Prevent cyclic nesting.
+- Deleting a goal deletes its descendants.
+- Setting a goal public sets its descendants.
+- Goal can be reordered only under its parent.
 
 ## Getting Started
 
@@ -33,6 +42,7 @@ Personal goals manager built with nodejs and angular
 - Login.
 - In dashboard, add new goals.
 - Edit or delete a goal.
+- Set a goal public.
 - Reorder a goal by draging and dropping it over the space between other goals.
 - Nest a goal by draging and dropping it over the new parent goal.
 
@@ -47,8 +57,4 @@ Personal goals manager built with nodejs and angular
 ## Further improvements
 
 - Add JWT auth.
-- Implement public goals page and api.
-- Add detailed error message.
-- Use ISO date.
-
-
+- Use ISO date format.

@@ -41,6 +41,9 @@ let GoalsService = class GoalsService {
         if (!existingGoal) {
             return false;
         }
+        if (existingGoal.isPublic) {
+            return false;
+        }
         existingGoal.title = goalData.title ?? '';
         existingGoal.description = goalData.description ?? '';
         existingGoal.deadline = goalData.deadline ?? new Date();
@@ -56,6 +59,9 @@ let GoalsService = class GoalsService {
         if (!sourceGoal || !targetGoal) {
             return false;
         }
+        if (sourceGoal.isPublic || targetGoal.isPublic) {
+            return false;
+        }
         if (sourceGoal.parentId === targetId) {
             return false;
         }
@@ -63,8 +69,8 @@ let GoalsService = class GoalsService {
             return false;
         }
         if (targetGoal.parentId !== '0') {
-            const targetParent = await this.goalRepo.findOne({ where: { id: targetGoal.parentId } });
-            if (targetParent && targetParent.parentId !== '0') {
+            const parentGoal = await this.goalRepo.findOne({ where: { id: targetGoal.parentId } });
+            if (parentGoal && parentGoal.parentId !== '0') {
                 return false;
             }
         }
@@ -81,6 +87,9 @@ let GoalsService = class GoalsService {
         const sourceGoal = await this.goalRepo.findOne({ where: { id: sourceId } });
         const targetGoal = await this.goalRepo.findOne({ where: { id: targetId } });
         if (!sourceGoal || !targetGoal) {
+            return false;
+        }
+        if (sourceGoal.isPublic || targetGoal.isPublic) {
             return false;
         }
         if (sourceGoal.id === targetGoal.id) {
@@ -105,7 +114,42 @@ let GoalsService = class GoalsService {
         await this.goalRepo.save(siblings);
         return true;
     }
+    async setPublic(id) {
+        const goal = await this.goalRepo.findOne({ where: { id: id } });
+        if (!goal) {
+            return false;
+        }
+        if (goal.isPublic) {
+            return true;
+        }
+        return await this.setPublicTree(id);
+    }
+    async setPublicTree(id) {
+        const children = await this.goalRepo.find({ where: { parentId: id } });
+        if (children.length !== 0) {
+            for (const goal of children) {
+                await this.setPublicTree(goal.id);
+            }
+        }
+        const goal = await this.goalRepo.findOne({ where: { id: id } });
+        if (!goal) {
+            return false;
+        }
+        goal.isPublic = true;
+        goal.ownerId = '0';
+        goal.parentId = '1';
+        goal.order = 0;
+        await this.goalRepo.save(goal);
+        return true;
+    }
     async deleteGoal(id) {
+        const goal = await this.goalRepo.findOne({ where: { id: id } });
+        if (!goal) {
+            return false;
+        }
+        if (goal.isPublic) {
+            return false;
+        }
         return await this.deleteGoalTree(id);
     }
     async deleteGoalTree(id) {

@@ -30,6 +30,9 @@ export class GoalsService {
         if (!existingGoal) {
             return false;
         }
+        if (existingGoal.isPublic) {
+            return false; // Cannot update public goals
+        }
 
         existingGoal.title = goalData.title ?? '';
         existingGoal.description = goalData.description ?? '';
@@ -50,6 +53,9 @@ export class GoalsService {
         if (!sourceGoal || !targetGoal) {
             return false;
         }
+        if (sourceGoal.isPublic || targetGoal.isPublic) {
+            return false; // Cannot nest public goals
+        }
         if (sourceGoal.parentId === targetId) {            
             return false; // Already nested under the target
         }
@@ -57,8 +63,8 @@ export class GoalsService {
             return false; // Cannot nest a goal under its child.
         }
         if (targetGoal.parentId !== '0') { // Target has a parent
-            const targetParent = await this.goalRepo.findOne({ where: { id: targetGoal.parentId } });
-            if (targetParent && targetParent.parentId !== '0') { // Target has a grandparent
+            const parentGoal = await this.goalRepo.findOne({ where: { id: targetGoal.parentId } });
+            if (parentGoal && parentGoal.parentId !== '0') { // Target has a grandparent
                 return false; // Cannot nest more than 2 levels deep
             }
         }
@@ -79,6 +85,7 @@ export class GoalsService {
         const targetGoal = await this.goalRepo.findOne({ where: { id: targetId } });
 
         if (!sourceGoal || !targetGoal) { return false; }
+        if (sourceGoal.isPublic || targetGoal.isPublic) { return false; }
         if (sourceGoal.id === targetGoal.id) { return false; }
         if (sourceGoal.parentId !== targetGoal.parentId) { return false; }
         if (sourceGoal.order === targetGoal.order + 1) { return false; }
@@ -101,8 +108,47 @@ export class GoalsService {
         return true;
     }
 
+    async setPublic(id: string): Promise<boolean> {
+        const goal = await this.goalRepo.findOne({ where: { id: id } });
+        if (!goal) {
+            return false;
+        }
+        if (goal.isPublic) {
+            return true;
+        }
+
+        return await this.setPublicTree(id);
+    }
+
+    async setPublicTree(id: string): Promise<boolean> {
+        const children = await this.goalRepo.find({ where: { parentId: id } });
+        if (children.length !== 0) {
+            for (const goal of children) {
+                await this.setPublicTree(goal.id);
+            }
+        }
+
+        const goal = await this.goalRepo.findOne({ where: { id: id } });
+        if (!goal) {
+            return false;
+        }
+        goal.isPublic = true;
+        goal.ownerId = '0';
+        goal.parentId = '1';
+        goal.order = 0;
+
+        await this.goalRepo.save(goal);        return true;
+    }
+
     // To be surrounded with transaction
     async deleteGoal(id: string): Promise<boolean> { 
+        const goal = await this.goalRepo.findOne({ where: { id: id } });
+        if (!goal) {
+            return false;
+        }
+        if (goal.isPublic) {
+            return false; // Cannot delete public goals
+        }
         return await this.deleteGoalTree(id);
     }
 

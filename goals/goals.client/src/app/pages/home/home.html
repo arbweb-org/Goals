@@ -7,3 +7,18 @@
 <a href="/dashboard">Dashboard</a>
 <br />
 <br />
+
+<div *ngIf="isLoading">Loading...</div>
+<div *ngFor="let goal of goals">
+  <div class="container">
+    <div class="item">
+      <div>
+        <b>{{ goal.title }}</b><br />
+        <span>Description: {{ goal.description }}</span><br />
+        <span>Deadline: {{ goal.deadline }}</span>
+      </div>
+    </div>
+
+    <div class="separator">&nbsp;</div>
+  </div>
+</div>

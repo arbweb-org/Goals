@@ -42,6 +42,13 @@ let GoalsController = class GoalsController {
         await this.goalsService.reorderGoal(sourceId, targetId);
         return { success: true };
     }
+    async setGoalPublic(id) {
+        const goal = await this.goalsService.setPublic(id);
+        if (!goal) {
+            throw new common_1.NotFoundException('Goal not found');
+        }
+        return { success: true };
+    }
     async deleteGoal(id) {
         await this.goalsService.deleteGoal(id);
         return { success: true };
@@ -90,6 +97,13 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "reorderGoal", null);
+__decorate([
+    (0, common_1.Put)('setPublic/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], GoalsController.prototype, "setGoalPublic", null);
 __decorate([
     (0, common_1.Delete)('delete/:id'),
     __param(0, (0, common_1.Param)('id')),

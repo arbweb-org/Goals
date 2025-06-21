@@ -1,0 +1,17 @@
+.container {
+  width: 800px;
+}
+
+.item {
+  padding: 5px;
+  border: 1px solid black;
+}
+
+  .item div {
+    margin: 5px;
+    display: inline;
+  }
+
+.separator {
+  height: 20px;
+}

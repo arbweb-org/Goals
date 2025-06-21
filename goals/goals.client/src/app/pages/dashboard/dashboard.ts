@@ -94,6 +94,25 @@ export class Dashboard {
     }
   }
 
+  setPublic(event: MouseEvent) {
+    event.preventDefault();
+
+    const elementId = (event.target as HTMLElement).id;
+    const id = elementId.substring(2);
+    this.http.put<{ success: boolean }>(`/api/goals/setpublic/${id}`, '').subscribe(
+      {
+        next: (res) => {
+          alert('Goal set to public successfully');
+          window.location.reload();
+        },
+        error: (err) => {
+          alert('Error setting goal to public');
+          window.location.reload();
+        }
+      }
+    );
+  }
+
   deleteGoal(event: MouseEvent) {
     event.preventDefault();
 
@@ -124,8 +143,19 @@ export class Dashboard {
 
   onDragOver(event: DragEvent) {
     event.preventDefault();
+
+    const target = event.target as HTMLElement;
+    target.style.backgroundColor = '#F6FAF3';
   }
 
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+
+    const target = event.target as HTMLElement;
+    target.style.backgroundColor = '';
+  }
+
+  // Drop to nest in target goal
   onDropNest(event: DragEvent) {
     event.preventDefault();
 
@@ -152,6 +182,7 @@ export class Dashboard {
     );
   }
 
+  // Drop to reorder after target goal
   onDropOrder(event: DragEvent) {
     event.preventDefault();
 

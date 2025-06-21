@@ -17,6 +17,9 @@ export declare class GoalsController {
     reorderGoal(sourceId: string, targetId: string): Promise<{
         success: boolean;
     }>;
+    setGoalPublic(id: string): Promise<{
+        success: boolean;
+    }>;
     deleteGoal(id: string): Promise<{
         success: boolean;
     }>;

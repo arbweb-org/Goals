@@ -40,6 +40,16 @@ export class GoalsController {
         return { success: true };
     }
 
+    @Put('setPublic/:id')
+    async setGoalPublic(@Param('id') id: string): Promise<{ success: boolean }> {
+        const goal = await this.goalsService.setPublic(id);
+        if (!goal) {
+            throw new NotFoundException('Goal not found');
+        }
+
+        return { success: true };
+    }
+
     @Delete('delete/:id')
     async deleteGoal(@Param('id') id: string): Promise<{ success: boolean }> {
         await this.goalsService.deleteGoal(id);

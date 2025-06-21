@@ -27,26 +27,27 @@
 <br />
 
 <div *ngIf="isLoading">Loading...</div>
-<div *ngFor="let goal of goals" style="width:400px">
+<div *ngFor="let goal of goals">
   <div class="container" [style.marginLeft.px]="(goal.level ?? 0) * 20">
     <div class="item" id="{{ goal.level + '-' + goal.id }}" draggable="true"
-         (dragstart)="onDragStart($event)" (dragover)="onDragOver($event)" (drop)="onDropNest($event)">
+         (dragstart)="onDragStart($event)" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropNest($event)">
       <div>
-        <span>{{ goal.order }}</span>&nbsp;
-        <span>{{ goal.title }}</span><br />
-        <span>{{ goal.description }}</span>&nbsp;&nbsp;
-        <span>{{ goal.deadline }}</span>
+        <b>{{ goal.title }}</b><br />
+        <span>Description: {{ goal.description }}</span><br />
+        <span>Deadline: {{ goal.deadline }}</span>
       </div>
 
       <div>
         <a href="#" id="{{ 'e-' + goal.id }}" (click)="editGoalClicked($event)">Edit</a>
+        &nbsp;
+        <a href="#" id="{{ 'p-' + goal.id }}" (click)="setPublic($event)">Set public</a>
         &nbsp;
         <a href="#" id="{{ 'd-' + goal.id }}" (click)="deleteGoal($event)">Delete</a>
       </div>
     </div>
 
     <div class="separator" id="{{ 's-' + goal.id }}"
-         (dragover)="onDragOver($event)" (drop)="onDropOrder($event)">&nbsp;</div>
+         (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropOrder($event)">&nbsp;</div>
   </div>
 </div>
 
