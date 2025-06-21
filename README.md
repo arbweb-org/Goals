@@ -8,6 +8,7 @@ Personal goals manager built with nodejs and angular
 - Reorder goals.
 - Nest goals.
 - Login and register.
+- Hash passwords.
 
 ## Getting Started
 
@@ -26,10 +27,18 @@ Personal goals manager built with nodejs and angular
 - Navigate to 'Goals\goals.server' folder.
 - Run the cli command: 'npm run start', server will start on localhost:3000.
 
+### How to use the app
+
+- Register.
+- Login.
+- In dashboard, add new goals.
+- Edit or delete a goal.
+- Reorder a goal by draging and dropping it over the space between other goals.
+- Nest a goal by draging and dropping it over the new parent goal.
+
 ## Known bugs and limitations
 
-- No user input validation.
-- Users api not implemented storage in database.
+- No user input validation in dashboard.
 - No user session persistence.
 - No database transaction implemented.
 - Inaccurate Goal deadline date when create new or updated.
@@ -41,7 +50,5 @@ Personal goals manager built with nodejs and angular
 - Implement public goals page and api.
 - Add detailed error message.
 - Use ISO date.
-
-
 
 
