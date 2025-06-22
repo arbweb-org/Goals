@@ -7,28 +7,33 @@ import { Goal } from './goal.entity';
 export class GoalsService {
     constructor(@InjectRepository(Goal) private goalRepo: Repository<Goal>) { }
 
-    async findAll(isPublic: boolean): Promise<Goal[]> {
-        return await this.goalRepo.find({ where: { isPublic: isPublic } });
+    async findAll(userId: string): Promise<Goal[]> {
+        return await this.goalRepo.find({ where: { ownerId: userId } });
     }
 
-    async createGoal(goalData: Partial<Goal>): Promise<boolean> {
-        goalData.parentId = '0';
-
+    async createGoal(userId: string, goalData: Partial<Goal>): Promise<boolean> {
+        // Last goal in level 1
         const lastGoal = await this.goalRepo.findOne({
-            where: { parentId: goalData.parentId },
+            where: { parentId: '0' },
             order: { order: 'DESC' },
         });
 
+        goalData.ownerId = userId;
+        goalData.parentId = '0';
         goalData.order = lastGoal ? lastGoal.order + 1 : 0;
         const goal = this.goalRepo.create(goalData);
         await this.goalRepo.save(goal);
         return true;
     }
 
-    async updateGoal(goalData: Partial<Goal>): Promise<boolean> {
+    async updateGoal(userId: string, goalData: Partial<Goal>): Promise<boolean> {
         const existingGoal = await this.goalRepo.findOne({ where: { id: goalData.id } });
+
         if (!existingGoal) {
             return false;
+        }
+        if (existingGoal.ownerId !== userId) {
+            return false; // User does not own this goal
         }
         if (existingGoal.isPublic) {
             return false; // Cannot update public goals
@@ -42,7 +47,7 @@ export class GoalsService {
         return true;
     }
 
-    async nestGoal(sourceId: string, targetId: string): Promise<boolean> {
+    async nestGoal(userId: string, sourceId: string, targetId: string): Promise<boolean> {
         if (sourceId === targetId) {
             return false; // Cannot nest a goal under itself
         }
@@ -52,6 +57,9 @@ export class GoalsService {
 
         if (!sourceGoal || !targetGoal) {
             return false;
+        }
+        if (sourceGoal.ownerId !== userId || targetGoal.ownerId !== userId) {
+            return false; // User does not own one of the goals
         }
         if (sourceGoal.isPublic || targetGoal.isPublic) {
             return false; // Cannot nest public goals
@@ -80,11 +88,12 @@ export class GoalsService {
         return true;
     }
 
-    async reorderGoal(sourceId: string, targetId: string): Promise<boolean> {
+    async reorderGoal(userId: string, sourceId: string, targetId: string): Promise<boolean> {
         const sourceGoal = await this.goalRepo.findOne({ where: { id: sourceId } });
         const targetGoal = await this.goalRepo.findOne({ where: { id: targetId } });
 
         if (!sourceGoal || !targetGoal) { return false; }
+        if (sourceGoal.ownerId !== userId || targetGoal.ownerId !== userId) { return false; }
         if (sourceGoal.isPublic || targetGoal.isPublic) { return false; }
         if (sourceGoal.id === targetGoal.id) { return false; }
         if (sourceGoal.parentId !== targetGoal.parentId) { return false; }
@@ -108,10 +117,13 @@ export class GoalsService {
         return true;
     }
 
-    async setPublic(id: string): Promise<boolean> {
+    async setPublic(userId: string, id: string): Promise<boolean> {
         const goal = await this.goalRepo.findOne({ where: { id: id } });
         if (!goal) {
             return false;
+        }
+        if (goal.ownerId !== userId) {
+            return false; // User does not own this goal
         }
         if (goal.isPublic) {
             return true;
@@ -137,14 +149,18 @@ export class GoalsService {
         goal.parentId = '1';
         goal.order = 0;
 
-        await this.goalRepo.save(goal);        return true;
+        await this.goalRepo.save(goal);
+        return true;
     }
 
     // To be surrounded with transaction
-    async deleteGoal(id: string): Promise<boolean> { 
+    async deleteGoal(userId: string, id: string): Promise<boolean> { 
         const goal = await this.goalRepo.findOne({ where: { id: id } });
         if (!goal) {
             return false;
+        }
+        if (goal.ownerId !== userId) {
+            return false; // User does not own this goal
         }
         if (goal.isPublic) {
             return false; // Cannot delete public goals

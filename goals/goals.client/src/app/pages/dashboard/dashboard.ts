@@ -36,11 +36,17 @@ export class Dashboard {
   }
 
   async loadGoals() {
-    this.http.get<Goal[]>('/api/goals/private').subscribe(goals => {
-      this.goals = this.sortedGoals(goals, '0', 0);
-      this.isLoading = false;
-      this.cdr.detectChanges();
-    });
+    this.http.get<Goal[]>('/api/goals/private').subscribe(
+      {
+        next: (res) => {
+          this.goals = this.sortedGoals(res, '0', 0);
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          window.location.href = '/login';
+        }
+      });
   }
 
   sortedGoals(goals: Goal[], parentId: string, level: number): Goal[] {
@@ -207,8 +213,7 @@ export class Dashboard {
   signOut(event: MouseEvent) {
     event.preventDefault();
 
-    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    alert('You have been signed out');
+    localStorage.removeItem('token');
     window.location.href = '/login';
   }
 }

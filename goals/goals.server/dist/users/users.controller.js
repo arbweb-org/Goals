@@ -15,33 +15,41 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
+const jose_1 = require("jose");
+const auth_guard_1 = require("../auth/auth.guard");
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
         this.usersService = usersService;
     }
-    async login(user) {
-        if (!user.email || !user.password) {
+    async login(userData) {
+        if (!userData.email || !userData.password) {
             throw new common_1.UnauthorizedException('Email and password are required!');
         }
-        const foundUser = await this.usersService.findUserByEmail(user.email);
-        if (!foundUser) {
+        const user = await this.usersService.findUserByEmail(userData.email);
+        if (!user) {
             throw new common_1.UnauthorizedException('Invalid credentials!');
         }
-        if (!foundUser.validatePassword(user.password)) {
+        if (!user.validatePassword(userData.password)) {
             throw new common_1.UnauthorizedException('Invalid credentials!');
         }
-        return { success: true };
+        const secret = new TextEncoder().encode(auth_guard_1.JWT_SECRET);
+        const token = await new jose_1.SignJWT({ data: user.id })
+            .setProtectedHeader({ alg: 'HS256' })
+            .setIssuedAt()
+            .setExpirationTime('1h')
+            .sign(secret);
+        return { success: true, token };
     }
-    async register(user) {
+    async register(userData) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!user.email || !emailRegex.test(user.email)) {
+        if (!userData.email || !emailRegex.test(userData.email)) {
             throw new common_1.UnprocessableEntityException('Invalid email format');
         }
-        if (!user.password || user.password.length < 6) {
+        if (!userData.password || userData.password.length < 6) {
             throw new common_1.UnprocessableEntityException('Password must be at least 6 characters long');
         }
-        const res = await this.usersService.createUser(user.email, user.password);
+        const res = await this.usersService.createUser(userData.email, userData.password);
         if (!res) {
             throw new common_1.ConflictException('User already exists');
         }

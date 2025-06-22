@@ -49,12 +49,13 @@ Personal goals manager built with nodejs and angular
 ## Known bugs and limitations
 
 - No user input validation in dashboard.
-- No user session persistence.
 - No database transaction implemented.
 - Inaccurate Goal deadline date when create new or updated.
 - Date input doesnt bind correctly when update Goal object.
+- Public goals are read only.
+- All public goals are at the top level.
 
 ## Further improvements
 
-- Add JWT auth.
 - Use ISO date format.
+- Add db transaction.

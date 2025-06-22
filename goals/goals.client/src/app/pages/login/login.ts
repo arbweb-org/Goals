@@ -22,8 +22,10 @@ export class Login {
 
   login() {
     this.message = 'Please wait...';
-    this.http.post<User>('/api/users/login', this.user).subscribe({
-      next: (response: User) => {
+    this.http.post<{ success: boolean, token: string }>('/api/users/login', this.user).subscribe({
+      next: (response) => {
+        localStorage.setItem('token', response.token);
+
         this.message = '';
         this.cdr.detectChanges();
         alert('Login successful!');

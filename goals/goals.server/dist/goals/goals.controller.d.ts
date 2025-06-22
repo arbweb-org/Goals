@@ -4,23 +4,23 @@ export declare class GoalsController {
     private readonly goalsService;
     constructor(goalsService: GoalsService);
     getPublicGoals(): Promise<Goal[]>;
-    getPrivateGoals(): Promise<Goal[]>;
-    createGoal(goal: Partial<Goal>): Promise<{
+    getPrivateGoals(req: any): Promise<Goal[]>;
+    createGoal(req: any, goal: Partial<Goal>): Promise<{
         success: boolean;
     }>;
-    updateGoal(goal: Partial<Goal>): Promise<{
+    updateGoal(req: any, goal: Partial<Goal>): Promise<{
         success: boolean;
     }>;
-    nestGoal(sourceId: string, targetId: string): Promise<{
+    nestGoal(req: any, sourceId: string, targetId: string): Promise<{
         success: boolean;
     }>;
-    reorderGoal(sourceId: string, targetId: string): Promise<{
+    reorderGoal(req: any, sourceId: string, targetId: string): Promise<{
         success: boolean;
     }>;
-    setGoalPublic(id: string): Promise<{
+    setGoalPublic(req: any, id: string): Promise<{
         success: boolean;
     }>;
-    deleteGoal(id: string): Promise<{
+    deleteGoal(req: any, id: string): Promise<{
         success: boolean;
     }>;
 }

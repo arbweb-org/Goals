@@ -15,42 +15,50 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.GoalsController = void 0;
 const common_1 = require("@nestjs/common");
 const goals_service_1 = require("./goals.service");
+const auth_guard_1 = require("../auth/auth.guard");
 let GoalsController = class GoalsController {
     goalsService;
     constructor(goalsService) {
         this.goalsService = goalsService;
     }
     async getPublicGoals() {
-        return await this.goalsService.findAll(true);
+        return await this.goalsService.findAll('0');
     }
-    async getPrivateGoals() {
-        return await this.goalsService.findAll(false);
+    async getPrivateGoals(req) {
+        const userId = req[auth_guard_1.USER_ID];
+        return await this.goalsService.findAll(userId);
     }
-    async createGoal(goal) {
-        await this.goalsService.createGoal(goal);
+    async createGoal(req, goal) {
+        const userId = req[auth_guard_1.USER_ID];
+        await this.goalsService.createGoal(userId, goal);
         return { success: true };
     }
-    async updateGoal(goal) {
-        await this.goalsService.updateGoal(goal);
+    async updateGoal(req, goal) {
+        const userId = req[auth_guard_1.USER_ID];
+        await this.goalsService.updateGoal(userId, goal);
         return { success: true };
     }
-    async nestGoal(sourceId, targetId) {
-        await this.goalsService.nestGoal(sourceId, targetId);
+    async nestGoal(req, sourceId, targetId) {
+        const userId = req[auth_guard_1.USER_ID];
+        await this.goalsService.nestGoal(userId, sourceId, targetId);
         return { success: true };
     }
-    async reorderGoal(sourceId, targetId) {
-        await this.goalsService.reorderGoal(sourceId, targetId);
+    async reorderGoal(req, sourceId, targetId) {
+        const userId = req[auth_guard_1.USER_ID];
+        await this.goalsService.reorderGoal(userId, sourceId, targetId);
         return { success: true };
     }
-    async setGoalPublic(id) {
-        const goal = await this.goalsService.setPublic(id);
+    async setGoalPublic(req, id) {
+        const userId = req[auth_guard_1.USER_ID];
+        const goal = await this.goalsService.setPublic(userId, id);
         if (!goal) {
             throw new common_1.NotFoundException('Goal not found');
         }
         return { success: true };
     }
-    async deleteGoal(id) {
-        await this.goalsService.deleteGoal(id);
+    async deleteGoal(req, id) {
+        const userId = req[auth_guard_1.USER_ID];
+        await this.goalsService.deleteGoal(userId, id);
         return { success: true };
     }
 };
@@ -62,53 +70,67 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "getPublicGoals", null);
 __decorate([
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     (0, common_1.Get)('private'),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "getPrivateGoals", null);
 __decorate([
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     (0, common_1.Post)('create'),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "createGoal", null);
 __decorate([
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     (0, common_1.Put)('update'),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "updateGoal", null);
 __decorate([
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     (0, common_1.Put)('nest/:sourceId/:targetId'),
-    __param(0, (0, common_1.Param)('sourceId')),
-    __param(1, (0, common_1.Param)('targetId')),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('sourceId')),
+    __param(2, (0, common_1.Param)('targetId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "nestGoal", null);
 __decorate([
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     (0, common_1.Put)('reorder/:sourceId/:targetId'),
-    __param(0, (0, common_1.Param)('sourceId')),
-    __param(1, (0, common_1.Param)('targetId')),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('sourceId')),
+    __param(2, (0, common_1.Param)('targetId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "reorderGoal", null);
 __decorate([
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     (0, common_1.Put)('setPublic/:id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "setGoalPublic", null);
 __decorate([
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     (0, common_1.Delete)('delete/:id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "deleteGoal", null);
 exports.GoalsController = GoalsController = __decorate([

@@ -3,13 +3,13 @@ import { Goal } from './goal.entity';
 export declare class GoalsService {
     private goalRepo;
     constructor(goalRepo: Repository<Goal>);
-    findAll(isPublic: boolean): Promise<Goal[]>;
-    createGoal(goalData: Partial<Goal>): Promise<boolean>;
-    updateGoal(goalData: Partial<Goal>): Promise<boolean>;
-    nestGoal(sourceId: string, targetId: string): Promise<boolean>;
-    reorderGoal(sourceId: string, targetId: string): Promise<boolean>;
-    setPublic(id: string): Promise<boolean>;
+    findAll(userId: string): Promise<Goal[]>;
+    createGoal(userId: string, goalData: Partial<Goal>): Promise<boolean>;
+    updateGoal(userId: string, goalData: Partial<Goal>): Promise<boolean>;
+    nestGoal(userId: string, sourceId: string, targetId: string): Promise<boolean>;
+    reorderGoal(userId: string, sourceId: string, targetId: string): Promise<boolean>;
+    setPublic(userId: string, id: string): Promise<boolean>;
     setPublicTree(id: string): Promise<boolean>;
-    deleteGoal(id: string): Promise<boolean>;
+    deleteGoal(userId: string, id: string): Promise<boolean>;
     deleteGoalTree(id: string): Promise<boolean>;
 }

@@ -22,23 +22,27 @@ let GoalsService = class GoalsService {
     constructor(goalRepo) {
         this.goalRepo = goalRepo;
     }
-    async findAll(isPublic) {
-        return await this.goalRepo.find({ where: { isPublic: isPublic } });
+    async findAll(userId) {
+        return await this.goalRepo.find({ where: { ownerId: userId } });
     }
-    async createGoal(goalData) {
-        goalData.parentId = '0';
+    async createGoal(userId, goalData) {
         const lastGoal = await this.goalRepo.findOne({
-            where: { parentId: goalData.parentId },
+            where: { parentId: '0' },
             order: { order: 'DESC' },
         });
+        goalData.ownerId = userId;
+        goalData.parentId = '0';
         goalData.order = lastGoal ? lastGoal.order + 1 : 0;
         const goal = this.goalRepo.create(goalData);
         await this.goalRepo.save(goal);
         return true;
     }
-    async updateGoal(goalData) {
+    async updateGoal(userId, goalData) {
         const existingGoal = await this.goalRepo.findOne({ where: { id: goalData.id } });
         if (!existingGoal) {
+            return false;
+        }
+        if (existingGoal.ownerId !== userId) {
             return false;
         }
         if (existingGoal.isPublic) {
@@ -50,13 +54,16 @@ let GoalsService = class GoalsService {
         await this.goalRepo.save(existingGoal);
         return true;
     }
-    async nestGoal(sourceId, targetId) {
+    async nestGoal(userId, sourceId, targetId) {
         if (sourceId === targetId) {
             return false;
         }
         const sourceGoal = await this.goalRepo.findOne({ where: { id: sourceId } });
         const targetGoal = await this.goalRepo.findOne({ where: { id: targetId } });
         if (!sourceGoal || !targetGoal) {
+            return false;
+        }
+        if (sourceGoal.ownerId !== userId || targetGoal.ownerId !== userId) {
             return false;
         }
         if (sourceGoal.isPublic || targetGoal.isPublic) {
@@ -83,10 +90,13 @@ let GoalsService = class GoalsService {
         await this.goalRepo.save(sourceGoal);
         return true;
     }
-    async reorderGoal(sourceId, targetId) {
+    async reorderGoal(userId, sourceId, targetId) {
         const sourceGoal = await this.goalRepo.findOne({ where: { id: sourceId } });
         const targetGoal = await this.goalRepo.findOne({ where: { id: targetId } });
         if (!sourceGoal || !targetGoal) {
+            return false;
+        }
+        if (sourceGoal.ownerId !== userId || targetGoal.ownerId !== userId) {
             return false;
         }
         if (sourceGoal.isPublic || targetGoal.isPublic) {
@@ -114,9 +124,12 @@ let GoalsService = class GoalsService {
         await this.goalRepo.save(siblings);
         return true;
     }
-    async setPublic(id) {
+    async setPublic(userId, id) {
         const goal = await this.goalRepo.findOne({ where: { id: id } });
         if (!goal) {
+            return false;
+        }
+        if (goal.ownerId !== userId) {
             return false;
         }
         if (goal.isPublic) {
@@ -142,9 +155,12 @@ let GoalsService = class GoalsService {
         await this.goalRepo.save(goal);
         return true;
     }
-    async deleteGoal(id) {
+    async deleteGoal(userId, id) {
         const goal = await this.goalRepo.findOne({ where: { id: id } });
         if (!goal) {
+            return false;
+        }
+        if (goal.ownerId !== userId) {
             return false;
         }
         if (goal.isPublic) {
