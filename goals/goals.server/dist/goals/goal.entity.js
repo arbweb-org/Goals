@@ -38,7 +38,7 @@ __decorate([
 ], Goal.prototype, "description", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
-    __metadata("design:type", Date)
+    __metadata("design:type", String)
 ], Goal.prototype, "deadline", void 0);
 __decorate([
     (0, typeorm_1.Column)({ default: false }),

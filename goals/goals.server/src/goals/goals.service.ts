@@ -41,7 +41,7 @@ export class GoalsService {
 
         existingGoal.title = goalData.title ?? '';
         existingGoal.description = goalData.description ?? '';
-        existingGoal.deadline = goalData.deadline ?? new Date();
+        existingGoal.deadline = goalData.deadline ?? (new Date()).toISOString();
                
         await this.goalRepo.save(existingGoal);
         return true;

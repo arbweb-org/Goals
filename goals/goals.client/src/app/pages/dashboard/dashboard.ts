@@ -8,7 +8,7 @@ export interface Goal {
   id?: string;
   title: string;
   description: string;
-  deadline: Date;
+  deadline: string;
   parentId?: string;
   order?: number;
   level?: number;
@@ -28,7 +28,7 @@ export class Dashboard {
   newGoal: Goal = {
     title: '',
     description: '',
-    deadline: new Date(),
+    deadline: (new Date()).toISOString(),
   };
 
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
@@ -60,6 +60,7 @@ export class Dashboard {
   }
 
   createGoal() {
+    this.newGoal.deadline = new Date(this.newGoal.deadline).toISOString();
     this.http.post<{ success: boolean }>('/api/goals/create', this.newGoal).subscribe(
       {
         next: (res) => {

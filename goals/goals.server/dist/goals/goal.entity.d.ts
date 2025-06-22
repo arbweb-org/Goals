@@ -2,7 +2,7 @@ export declare class Goal {
     id: string;
     title: string;
     description: string;
-    deadline: Date;
+    deadline: string;
     isPublic: boolean;
     parentId: string;
     order: number;

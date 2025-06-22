@@ -12,7 +12,7 @@ export class Goal {
     description: string;
 
     @Column()
-    deadline: Date;
+    deadline: string;
 
     @Column({ default: false })
     isPublic: boolean;
