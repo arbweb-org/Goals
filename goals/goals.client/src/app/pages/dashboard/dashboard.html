@@ -16,7 +16,7 @@
 
   <input [(ngModel)]="newGoal.title" placeholder="Title" />&nbsp;
   <input [(ngModel)]="newGoal.description" placeholder="Description" />&nbsp;
-  <input [(ngModel)]="newGoal.deadline" type="date" />&nbsp;
+  <input [(ngModel)]="newGoal.Deadline" type="date" />&nbsp;
 
   <button (click)="createGoal()" *ngIf="!isEditing">Create</button>&nbsp;
   <button (click)="updateGoal()" *ngIf="isEditing">Save</button>&nbsp;

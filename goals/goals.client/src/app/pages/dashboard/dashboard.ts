@@ -9,6 +9,8 @@ export interface Goal {
   title: string;
   description: string;
   deadline: string;
+  get Deadline(): string;
+  set Deadline(value: string);
   parentId?: string;
   order?: number;
   level?: number;
@@ -28,7 +30,13 @@ export class Dashboard {
   newGoal: Goal = {
     title: '',
     description: '',
-    deadline: (new Date()).toISOString(),
+    deadline: (new Date()).toISOString().substring(0, 10),
+    get Deadline() {
+      return this.deadline;
+    },
+    set Deadline(value: string) {
+      this.deadline = value.substring(0, 10);
+    }
   };
 
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
@@ -60,7 +68,6 @@ export class Dashboard {
   }
 
   createGoal() {
-    this.newGoal.deadline = new Date(this.newGoal.deadline).toISOString();
     this.http.post<{ success: boolean }>('/api/goals/create', this.newGoal).subscribe(
       {
         next: (res) => {
@@ -94,11 +101,10 @@ export class Dashboard {
     const id = elementId.substring(2);
 
     const goal = this.goals.find(g => g.id === id);
-    if (goal) {
-      this.newGoal.title = goal.title;
-      this.newGoal.description = goal.description;
-      this.newGoal.deadline = goal.deadline;
-    }
+    this.newGoal.id = goal?.id;
+    this.newGoal.title = goal?.title ?? '';
+    this.newGoal.description = goal?.description ?? '';
+    this.newGoal.deadline = goal?.deadline ?? (new Date()).toISOString().substring(0, 10);
   }
 
   setPublic(event: MouseEvent) {
