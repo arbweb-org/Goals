@@ -50,7 +50,6 @@ Personal goals manager built with nodejs and angular
 
 - No user input validation in dashboard.
 - No database transaction implemented.
-- Date input doesnt bind correctly when update Goal object.
 - Public goals are read only.
 - All public goals are at the top level.
 
