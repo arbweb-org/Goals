@@ -4,6 +4,10 @@
 <a href="/">&lt;&nbsp;Home</a>
 <br />
 
+<span *ngIf="isPublic">Public&nbsp;<a href="/dashboard?public=false">Private</a></span>
+<span *ngIf="!isPublic"><a href="/dashboard?public=true">Public</a>&nbsp;Private</span>
+<br />
+
 <a href="/login">Login</a>
 <br />
 
@@ -40,7 +44,7 @@
       <div>
         <a href="#" id="{{ 'e-' + goal.id }}" (click)="editGoalClicked($event)">Edit</a>
         &nbsp;
-        <a href="#" id="{{ 'p-' + goal.id }}" (click)="setPublic($event)">Set public</a>
+        <a href="#" id="{{ 'p-' + goal.id }}" (click)="togglePublic($event)">Set {{ goal.isPublic ? 'private' : 'public' }}</a>
         &nbsp;
         <a href="#" id="{{ 'd-' + goal.id }}" (click)="deleteGoal($event)">Delete</a>
       </div>
@@ -50,4 +54,3 @@
          (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropOrder($event)">&nbsp;</div>
   </div>
 </div>
-

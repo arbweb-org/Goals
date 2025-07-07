@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, NotFoundException, UnauthorizedException, UseGuards, Req } from '@nestjs/common';
+import { Controller, Query, Get, Post, Put, Delete, Body, Param, NotFoundException, UnauthorizedException, UseGuards, Req } from '@nestjs/common';
 import { GoalsService } from './goals.service';
 import { Goal } from './goal.entity';
 import { AuthGuard, USER_ID } from '../auth/auth.guard';
@@ -8,15 +8,15 @@ export class GoalsController {
     constructor(private readonly goalsService: GoalsService) { }
 
     @Get('public')
-    async getPublicGoals(): Promise<Goal[]> {
-        return await this.goalsService.findAll('0');
+    async getPublicGoals(@Query('parentId') parentId: string): Promise<Goal[]> {
+        return await this.goalsService.findByParent(parentId);
     }
 
     @UseGuards(AuthGuard)
-    @Get('private')
-    async getPrivateGoals(@Req() req): Promise<Goal[]> {
+    @Get('dashboard')
+    async getDashboard(@Req() req, @Query('isPublic') isPublic: boolean): Promise<Goal[]> {
         const userId = req[USER_ID];
-        return await this.goalsService.findAll(userId);
+        return await this.goalsService.findByUser(userId, isPublic);
     }
 
     @UseGuards(AuthGuard)
@@ -52,10 +52,10 @@ export class GoalsController {
     }
 
     @UseGuards(AuthGuard)
-    @Put('setPublic/:id')
-    async setGoalPublic(@Req() req, @Param('id') id: string): Promise<{ success: boolean }> {
+    @Put('togglePublic/:id')
+    async togglePublic(@Req() req, @Param('id') id: string): Promise<{ success: boolean }> {
         const userId = req[USER_ID];
-        const goal = await this.goalsService.setPublic(userId, id);
+        const goal = await this.goalsService.togglePublic(userId, id);
         if (!goal) {
             throw new NotFoundException('Goal not found');
         }

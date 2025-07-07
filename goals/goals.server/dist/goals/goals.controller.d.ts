@@ -3,8 +3,8 @@ import { Goal } from './goal.entity';
 export declare class GoalsController {
     private readonly goalsService;
     constructor(goalsService: GoalsService);
-    getPublicGoals(): Promise<Goal[]>;
-    getPrivateGoals(req: any): Promise<Goal[]>;
+    getPublicGoals(parentId: string): Promise<Goal[]>;
+    getDashboard(req: any, isPublic: boolean): Promise<Goal[]>;
     createGoal(req: any, goal: Partial<Goal>): Promise<{
         success: boolean;
     }>;
@@ -17,7 +17,7 @@ export declare class GoalsController {
     reorderGoal(req: any, sourceId: string, targetId: string): Promise<{
         success: boolean;
     }>;
-    setGoalPublic(req: any, id: string): Promise<{
+    togglePublic(req: any, id: string): Promise<{
         success: boolean;
     }>;
     deleteGoal(req: any, id: string): Promise<{

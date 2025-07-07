@@ -41,15 +41,15 @@ __decorate([
     __metadata("design:type", String)
 ], Goal.prototype, "deadline", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: false }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", Boolean)
 ], Goal.prototype, "isPublic", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: '0' }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Goal.prototype, "parentId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: 0 }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", Number)
 ], Goal.prototype, "order", void 0);
 __decorate([
@@ -57,7 +57,7 @@ __decorate([
     __metadata("design:type", String)
 ], Goal.prototype, "publicId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: '' }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Goal.prototype, "ownerId", void 0);
 __decorate([

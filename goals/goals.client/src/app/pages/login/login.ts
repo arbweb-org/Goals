@@ -29,7 +29,7 @@ export class Login {
         this.message = '';
         this.cdr.detectChanges();
         alert('Login successful!');
-        window.location.href = '/dashboard';
+        window.location.href = '/dashboard?public=true';
       },
       error: (error: any) => {
         this.message = 'Login failed: ' + (error.error?.message || 'Unknown error');

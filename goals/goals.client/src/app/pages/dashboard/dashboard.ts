@@ -1,20 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
-
-export interface Goal {
-  id?: string;
-  title: string;
-  description: string;
-  deadline: string;
-  get Deadline(): string;
-  set Deadline(value: string);
-  parentId?: string;
-  order?: number;
-  level?: number;
-}
+import { ActivatedRoute } from '@angular/router';
+import { Goal } from '../../goal';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,39 +12,44 @@ export interface Goal {
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
+  isPublic = false;
   isLoading = true;
   isEditing = false;
 
   goals: Goal[] = [];
-  newGoal: Goal = {
-    title: '',
-    description: '',
-    deadline: (new Date()).toISOString().substring(0, 10),
-    get Deadline() {
-      return this.deadline;
-    },
-    set Deadline(value: string) {
-      this.deadline = value.substring(0, 10);
-    }
-  };
+  newGoal: Goal = new Goal();
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
-    this.loadGoals();
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef, private route: ActivatedRoute) { }
+
+  ngOnInit() {
+    this.route.queryParamMap.subscribe(params => {
+      this.isPublic = this.route.snapshot.queryParamMap.get('public') === 'true';
+      this.newGoal.isPublic = this.isPublic;
+      this.loadGoals();
+    });
+  }
+
+  onRequestError(err: any) {
+    if (err.status === 401) {
+      alert('Session expired. Please log in again.');
+      window.location.href = '/login';
+    }
   }
 
   async loadGoals() {
-    this.http.get<Goal[]>('/api/goals/private').subscribe(
-      {
-        next: (res) => {
-          this.goals = this.sortedGoals(res, '0', 0);
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          window.location.href = '/login';
-        }
-      });
+    const parentId = this.isPublic === true ? '1' : '0';
+    const params = new HttpParams().set('isPublic', this.isPublic);
+    this.http.get<Goal[]>('/api/goals/dashboard', { params }).subscribe({
+      next: (res) => {
+        this.goals = this.sortedGoals(res, parentId, 0);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.onRequestError(err);
+      }
+    });
   }
 
   sortedGoals(goals: Goal[], parentId: string, level: number): Goal[] {
@@ -68,7 +63,13 @@ export class Dashboard {
   }
 
   createGoal() {
-    this.http.post<{ success: boolean }>('/api/goals/create', this.newGoal).subscribe(
+    const goal = {
+      title: this.newGoal.title,
+      description: this.newGoal.description,
+      deadline: this.newGoal.deadline,
+      isPublic: this.newGoal.isPublic
+    };
+    this.http.post<{ success: boolean }>('/api/goals/create', goal).subscribe(
       {
         next: (res) => {
           window.location.reload();
@@ -81,7 +82,13 @@ export class Dashboard {
   }
 
   updateGoal() {
-    this.http.put<{ success: boolean }>('/api/goals/update', this.newGoal).subscribe(
+    const goal = {
+      id: this.newGoal.id,
+      title: this.newGoal.title,
+      description: this.newGoal.description,
+      deadline: this.newGoal.deadline
+    };
+    this.http.put<{ success: boolean }>('/api/goals/update', goal).subscribe(
       {
         next: (res) => {
           window.location.reload();
@@ -101,25 +108,27 @@ export class Dashboard {
     const id = elementId.substring(2);
 
     const goal = this.goals.find(g => g.id === id);
-    this.newGoal.id = goal?.id;
-    this.newGoal.title = goal?.title ?? '';
-    this.newGoal.description = goal?.description ?? '';
-    this.newGoal.deadline = goal?.deadline ?? (new Date()).toISOString().substring(0, 10);
+    if (!goal) { return; }
+
+    this.newGoal.id = goal.id;
+    this.newGoal.title = goal.title;
+    this.newGoal.description = goal.description;
+    this.newGoal.deadline = goal.deadline;
   }
 
-  setPublic(event: MouseEvent) {
+  togglePublic(event: MouseEvent) {
     event.preventDefault();
 
     const elementId = (event.target as HTMLElement).id;
     const id = elementId.substring(2);
-    this.http.put<{ success: boolean }>(`/api/goals/setpublic/${id}`, '').subscribe(
+    this.http.put<{ success: boolean }>(`/api/goals/togglePublic/${id}`, '').subscribe(
       {
         next: (res) => {
-          alert('Goal set to public successfully');
+          alert('Goal updated successfully');
           window.location.reload();
         },
         error: (err) => {
-          alert('Error setting goal to public');
+          alert('Error updating goal');
           window.location.reload();
         }
       }
@@ -145,7 +154,7 @@ export class Dashboard {
       }
     );
   }
-
+  
   // Drag and drop plain js
   fromId: string = '';
   toId: string = '';

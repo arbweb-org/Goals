@@ -7,20 +7,25 @@ import { Goal } from './goal.entity';
 export class GoalsService {
     constructor(@InjectRepository(Goal) private goalRepo: Repository<Goal>) { }
 
-    async findAll(userId: string): Promise<Goal[]> {
-        return await this.goalRepo.find({ where: { ownerId: userId } });
+    async findByParent(parentId: string): Promise<Goal[]> {
+        return await this.goalRepo.find({ where: { parentId: parentId } });
+    }
+
+    async findByUser(userId: string, isPublic: boolean): Promise<Goal[]> {
+        return await this.goalRepo.find({ where: { ownerId: userId, isPublic: isPublic } });
     }
 
     async createGoal(userId: string, goalData: Partial<Goal>): Promise<boolean> {
-        // Last goal in level 1
+        const parentId = goalData.isPublic ? '1' : '0';
         const lastGoal = await this.goalRepo.findOne({
-            where: { parentId: '0' },
+            where: { parentId: parentId },
             order: { order: 'DESC' },
         });
 
-        goalData.ownerId = userId;
-        goalData.parentId = '0';
+        goalData.parentId = parentId;
         goalData.order = lastGoal ? lastGoal.order + 1 : 0;
+        goalData.ownerId = userId;
+
         const goal = this.goalRepo.create(goalData);
         await this.goalRepo.save(goal);
         return true;
@@ -33,10 +38,7 @@ export class GoalsService {
             return false;
         }
         if (existingGoal.ownerId !== userId) {
-            return false; // User does not own this goal
-        }
-        if (existingGoal.isPublic) {
-            return false; // Cannot update public goals
+            return false;
         }
 
         existingGoal.title = goalData.title ?? '';
@@ -49,7 +51,7 @@ export class GoalsService {
 
     async nestGoal(userId: string, sourceId: string, targetId: string): Promise<boolean> {
         if (sourceId === targetId) {
-            return false; // Cannot nest a goal under itself
+            return false;
         }
 
         const sourceGoal = await this.goalRepo.findOne({ where: { id: sourceId } });
@@ -59,22 +61,51 @@ export class GoalsService {
             return false;
         }
         if (sourceGoal.ownerId !== userId || targetGoal.ownerId !== userId) {
-            return false; // User does not own one of the goals
-        }
-        if (sourceGoal.isPublic || targetGoal.isPublic) {
-            return false; // Cannot nest public goals
+            return false;
         }
         if (sourceGoal.parentId === targetId) {            
-            return false; // Already nested under the target
+            return false;
         }
         if (targetGoal.parentId === sourceId) {
-            return false; // Cannot nest a goal under its child.
+            return false;
         }
-        if (targetGoal.parentId !== '0') { // Target has a parent
-            const parentGoal = await this.goalRepo.findOne({ where: { id: targetGoal.parentId } });
-            if (parentGoal && parentGoal.parentId !== '0') { // Target has a grandparent
-                return false; // Cannot nest more than 2 levels deep
+         
+        // Restricting total depth to 2 levels
+        let targetLevel = 0;
+        let sourceHeight = 0;
+
+        // Calculate target depth
+        if (['0', '1'].includes(targetGoal.parentId)) {
+            // Target depth = 0 (root)
+        }
+        else {
+            const targetParent = await this.goalRepo.findOne({ where: { id: targetGoal.parentId } });
+            if (targetParent && ['0', '1'].includes(targetParent.parentId)) { 
+                targetLevel = 1; // Target depth = 1                
             }
+            else {
+                return false; // Target depth = 2
+            }
+        }
+
+        // Calculate source height
+        const sourceChildren = await this.goalRepo.find({ where: { parentId: sourceGoal.id } });
+        if (sourceChildren.length === 0) {
+            // Source height = 0
+        }
+        else {
+            sourceHeight = 1; // Source height may be 1 or 2
+        }
+        for (const child of sourceChildren) {
+            const grandChildren = await this.goalRepo.find({ where: { parentId: child.id } });
+            if (grandChildren.length > 0) {
+                return false; // Source height = 2
+            }
+        }
+
+        // Calculate total new height
+        if (targetLevel + sourceHeight + 1 > 2) {
+            return false; // Total new height exceeds 2
         }
 
         const lastGoal = await this.goalRepo.findOne({
@@ -94,12 +125,11 @@ export class GoalsService {
 
         if (!sourceGoal || !targetGoal) { return false; }
         if (sourceGoal.ownerId !== userId || targetGoal.ownerId !== userId) { return false; }
-        if (sourceGoal.isPublic || targetGoal.isPublic) { return false; }
+        if (sourceGoal.isPublic) { return false; }
         if (sourceGoal.id === targetGoal.id) { return false; }
         if (sourceGoal.parentId !== targetGoal.parentId) { return false; }
         if (sourceGoal.order === targetGoal.order + 1) { return false; }
 
-        // Load all sibling goals
         let siblings = await this.goalRepo.find({
             where: { parentId: targetGoal.parentId },
             order: { order: 'ASC' }
@@ -117,66 +147,71 @@ export class GoalsService {
         return true;
     }
 
-    async setPublic(userId: string, id: string): Promise<boolean> {
+    async togglePublic(userId: string, id: string): Promise<boolean> {
+        // Get the goal by Id
         const goal = await this.goalRepo.findOne({ where: { id: id } });
+        // Check if the goal exists
         if (!goal) {
             return false;
         }
+        // Check if the user is the owner of the goal
         if (goal.ownerId !== userId) {
-            return false; // User does not own this goal
-        }
-        if (goal.isPublic) {
-            return true;
+            return false;
         }
 
-        return await this.setPublicTree(id);
+        goal.parentId = !goal.isPublic ? '1' : '0';
+        if (goal.isPublic) {
+            const lastGoal = await this.goalRepo.findOne({
+                where: { parentId: goal.parentId },
+                order: { order: 'DESC' },
+            });
+            goal.order = lastGoal ? lastGoal.order + 1 : 0;
+        }
+
+        let updatables: Goal[] = [];
+        const res = await this.toggleRecursive(goal, updatables);
+        await this.goalRepo.save(updatables);
+        return res;
     }
 
-    async setPublicTree(id: string): Promise<boolean> {
-        const children = await this.goalRepo.find({ where: { parentId: id } });
+    async toggleRecursive(goal: Goal, updatables: Goal[]): Promise<boolean> {
+        const children = await this.goalRepo.find({ where: { parentId: goal.id } });
         if (children.length !== 0) {
-            for (const goal of children) {
-                await this.setPublicTree(goal.id);
+            for (const child of children) {
+                await this.toggleRecursive(child, updatables);
             }
         }
 
-        const goal = await this.goalRepo.findOne({ where: { id: id } });
-        if (!goal) {
-            return false;
-        }
-        goal.isPublic = true;
-        goal.ownerId = '0';
-        goal.parentId = '1';
-        goal.order = 0;
-
-        await this.goalRepo.save(goal);
+        goal.isPublic = !goal.isPublic;
+        if (goal.isPublic) { goal.order = 0; }
+        updatables.push(goal);
         return true;
     }
 
-    // To be surrounded with transaction
     async deleteGoal(userId: string, id: string): Promise<boolean> { 
         const goal = await this.goalRepo.findOne({ where: { id: id } });
         if (!goal) {
             return false;
         }
         if (goal.ownerId !== userId) {
-            return false; // User does not own this goal
+            return false;
         }
-        if (goal.isPublic) {
-            return false; // Cannot delete public goals
-        }
-        return await this.deleteGoalTree(id);
+
+        let deletables: Goal[] = [];
+        const res = await this.deleteRecursive(goal, deletables);
+        await this.goalRepo.remove(deletables);
+        return res;
     }
 
-    async deleteGoalTree(id: string): Promise<boolean> {
-        const children = await this.goalRepo.find({ where: { parentId: id } });
+    async deleteRecursive(goal: Goal, deletables: Goal[]): Promise<boolean> {
+        const children = await this.goalRepo.find({ where: { parentId: goal.id } });
         if (children.length !== 0) {
-            for (const goal of children) {
-                await this.deleteGoalTree(goal.id);
+            for (const child of children) {
+                await this.deleteRecursive(child, deletables);
             }
         }
 
-        await this.goalRepo.delete(id);
+        deletables.push(goal)
         return true;
     }
 }

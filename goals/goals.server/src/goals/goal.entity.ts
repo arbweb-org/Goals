@@ -14,19 +14,19 @@ export class Goal {
     @Column()
     deadline: string;
 
-    @Column({ default: false })
+    @Column()
     isPublic: boolean;
 
-    @Column({ default: '0' })
+    @Column()
     parentId: string;
 
-    @Column({ default: 0 })
+    @Column()
     order: number;
 
     @Column({ default: '' })
     publicId: string;
 
-    @Column({ default: '' })
+    @Column()
     ownerId: string;
 
     @CreateDateColumn()

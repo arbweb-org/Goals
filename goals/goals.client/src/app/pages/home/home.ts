@@ -1,15 +1,9 @@
 import { Component } from '@angular/core';
-import { CommonModule, Time } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
-
-export interface Goal {
-  title: string;
-  description: string;
-  deadline: Date;
-  createdAt: Date;
-}
+import { Goal } from '../../goal';
 
 @Component({
   selector: 'app-home',
@@ -27,9 +21,10 @@ export class Home {
   }
 
   async loadGoals() {
-    this.http.get<Goal[]>('/api/goals/public').subscribe(goals => {
+    const params = new HttpParams().set('parentId', '1');
+    this.http.get<Goal[]>('/api/goals/public', { params }).subscribe(goals => {
       this.goals = goals;
-      this.goals.sort((b, a) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      this.goals.sort((b, a) => new Date(b.createdAt ?? '').getTime() - new Date(a.createdAt ?? '').getTime());
 
       this.isLoading = false;
       this.cdr.detectChanges();

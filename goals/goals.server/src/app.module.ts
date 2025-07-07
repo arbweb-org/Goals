@@ -33,7 +33,7 @@ import { Goal } from './goals/goal.entity';
         TypeOrmModule.forFeature([Goal]),
         TypeOrmModule.forFeature([User]),
         ServeStaticModule.forRoot({
-            rootPath: join(__dirname, '..', 'public/browser'),
+            rootPath: join(__dirname, '..', 'public/browser')
         }),
         UsersModule,
         GoalsModule,

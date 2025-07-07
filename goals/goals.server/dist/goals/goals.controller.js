@@ -21,12 +21,12 @@ let GoalsController = class GoalsController {
     constructor(goalsService) {
         this.goalsService = goalsService;
     }
-    async getPublicGoals() {
-        return await this.goalsService.findAll('0');
+    async getPublicGoals(parentId) {
+        return await this.goalsService.findByParent(parentId);
     }
-    async getPrivateGoals(req) {
+    async getDashboard(req, isPublic) {
         const userId = req[auth_guard_1.USER_ID];
-        return await this.goalsService.findAll(userId);
+        return await this.goalsService.findByUser(userId, isPublic);
     }
     async createGoal(req, goal) {
         const userId = req[auth_guard_1.USER_ID];
@@ -48,9 +48,9 @@ let GoalsController = class GoalsController {
         await this.goalsService.reorderGoal(userId, sourceId, targetId);
         return { success: true };
     }
-    async setGoalPublic(req, id) {
+    async togglePublic(req, id) {
         const userId = req[auth_guard_1.USER_ID];
-        const goal = await this.goalsService.setPublic(userId, id);
+        const goal = await this.goalsService.togglePublic(userId, id);
         if (!goal) {
             throw new common_1.NotFoundException('Goal not found');
         }
@@ -65,18 +65,20 @@ let GoalsController = class GoalsController {
 exports.GoalsController = GoalsController;
 __decorate([
     (0, common_1.Get)('public'),
+    __param(0, (0, common_1.Query)('parentId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "getPublicGoals", null);
 __decorate([
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
-    (0, common_1.Get)('private'),
+    (0, common_1.Get)('dashboard'),
     __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('isPublic')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Boolean]),
     __metadata("design:returntype", Promise)
-], GoalsController.prototype, "getPrivateGoals", null);
+], GoalsController.prototype, "getDashboard", null);
 __decorate([
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     (0, common_1.Post)('create'),
@@ -117,13 +119,13 @@ __decorate([
 ], GoalsController.prototype, "reorderGoal", null);
 __decorate([
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
-    (0, common_1.Put)('setPublic/:id'),
+    (0, common_1.Put)('togglePublic/:id'),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
-], GoalsController.prototype, "setGoalPublic", null);
+], GoalsController.prototype, "togglePublic", null);
 __decorate([
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     (0, common_1.Delete)('delete/:id'),

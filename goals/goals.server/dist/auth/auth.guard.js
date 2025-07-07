@@ -15,6 +15,9 @@ let AuthGuard = class AuthGuard {
     async canActivate(context) {
         const request = context.switchToHttp().getRequest();
         const authHeader = request.headers['authorization'];
+        if (!request.path.startsWith('/api')) {
+            return true;
+        }
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             throw new common_1.UnauthorizedException('Session expired');
         }
@@ -23,13 +26,18 @@ let AuthGuard = class AuthGuard {
             throw new common_1.UnauthorizedException('Session expired');
         }
         const secret = new TextEncoder().encode(exports.JWT_SECRET);
-        const { payload } = await (0, jose_1.jwtVerify)(token, secret);
-        if (typeof payload.data !== 'string') {
+        try {
+            const { payload } = await (0, jose_1.jwtVerify)(token, secret);
+            if (typeof payload.data !== 'string') {
+                throw new common_1.UnauthorizedException('Session expired');
+            }
+            const data = payload.data;
+            request['userId'] = data;
+            return true;
+        }
+        catch (err) {
             throw new common_1.UnauthorizedException('Session expired');
         }
-        const data = payload.data;
-        request['userId'] = data;
-        return true;
     }
 };
 exports.AuthGuard = AuthGuard;

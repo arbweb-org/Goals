@@ -11,23 +11,30 @@ export class AuthGuard implements CanActivate {
         const request: Request = context.switchToHttp().getRequest();
         const authHeader = request.headers['authorization'];
 
+        if (!request.path.startsWith('/api')) {
+            return true;
+        }
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             throw new UnauthorizedException('Session expired');
         }
-
         const token = authHeader.split(' ')[1];
         if (!token) {
             throw new UnauthorizedException('Session expired');
         }
 
         const secret = new TextEncoder().encode(JWT_SECRET);
-        const { payload } = await jwtVerify(token, secret);
-        if (typeof payload.data !== 'string') {
+        try {
+            const { payload } = await jwtVerify(token, secret);
+            if (typeof payload.data !== 'string') {
+                throw new UnauthorizedException('Session expired');
+            }
+
+            const data = payload.data;
+            request['userId'] = data;
+            return true;
+        }
+        catch (err) {
             throw new UnauthorizedException('Session expired');
         }
-
-        const data = payload.data;        
-        request['userId'] = data;
-        return true;
     }
 }
