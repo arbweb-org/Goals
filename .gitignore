@@ -4,8 +4,9 @@
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
 .angular
-.dist
-.public
+dist
+public
+obj
 
 # User-specific files
 *.rsuser
