@@ -1,7 +1,6 @@
 import { Controller, Post, Body, ConflictException, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { SignJWT } from 'jose';
-import { JWT_SECRET } from '../auth/auth.guard';
 
 @Controller('api/users')
 export class UsersController {
@@ -22,7 +21,7 @@ export class UsersController {
         }
 
         // Generate a new token for the user
-        const secret = new TextEncoder().encode(JWT_SECRET);
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
         const token = await new SignJWT({ data: user.id })
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()

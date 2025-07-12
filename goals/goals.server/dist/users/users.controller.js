@@ -16,7 +16,6 @@ exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
 const jose_1 = require("jose");
-const auth_guard_1 = require("../auth/auth.guard");
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
@@ -33,7 +32,7 @@ let UsersController = class UsersController {
         if (!user.validatePassword(userData.password)) {
             throw new common_1.UnauthorizedException('Invalid credentials!');
         }
-        const secret = new TextEncoder().encode(auth_guard_1.JWT_SECRET);
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
         const token = await new jose_1.SignJWT({ data: user.id })
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()

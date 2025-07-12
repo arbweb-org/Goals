@@ -23,21 +23,21 @@ exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
             config_1.ConfigModule.forRoot({
-                isGlobal: true,
+                isGlobal: true
             }),
             typeorm_1.TypeOrmModule.forRootAsync({
                 imports: [config_1.ConfigModule],
-                useFactory: (config) => ({
+                inject: [config_1.ConfigService],
+                useFactory: (configService) => ({
                     type: 'postgres',
-                    host: 'localhost',
-                    port: 5432,
-                    username: 'postgres',
-                    password: '06sL5U5h',
-                    database: 'goalsdb',
+                    host: configService.get('DB_HOST'),
+                    port: configService.get('DB_PORT'),
+                    username: configService.get('DB_USERNAME'),
+                    password: configService.get('DB_PASSWORD'),
+                    database: configService.get('DB_NAME'),
                     entities: [user_entity_1.User, goal_entity_1.Goal],
                     synchronize: true,
                 }),
-                inject: [config_1.ConfigService],
             }),
             typeorm_1.TypeOrmModule.forFeature([goal_entity_1.Goal]),
             typeorm_1.TypeOrmModule.forFeature([user_entity_1.User]),
@@ -45,7 +45,7 @@ exports.AppModule = AppModule = __decorate([
                 rootPath: (0, path_1.join)(__dirname, '..', 'public/browser')
             }),
             users_module_1.UsersModule,
-            goals_module_1.GoalsModule,
+            goals_module_1.GoalsModule
         ],
         controllers: [],
         providers: [],

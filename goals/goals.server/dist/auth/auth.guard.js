@@ -6,10 +6,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthGuard = exports.USER_ID = exports.JWT_SECRET = void 0;
+exports.AuthGuard = exports.USER_ID = void 0;
 const common_1 = require("@nestjs/common");
 const jose_1 = require("jose");
-exports.JWT_SECRET = 'KKFRUU6ruToCXHJvo9GQfyikuiZTNkJz';
 exports.USER_ID = 'userId';
 let AuthGuard = class AuthGuard {
     async canActivate(context) {
@@ -25,7 +24,7 @@ let AuthGuard = class AuthGuard {
         if (!token) {
             throw new common_1.UnauthorizedException('Session expired');
         }
-        const secret = new TextEncoder().encode(exports.JWT_SECRET);
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
         try {
             const { payload } = await (0, jose_1.jwtVerify)(token, secret);
             if (typeof payload.data !== 'string') {

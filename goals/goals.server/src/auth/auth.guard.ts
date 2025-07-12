@@ -2,7 +2,6 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { Request } from 'express';
 import { jwtVerify } from 'jose';
 
-export const JWT_SECRET = 'KKFRUU6ruToCXHJvo9GQfyikuiZTNkJz';
 export const USER_ID = 'userId';
 
 @Injectable()
@@ -22,7 +21,7 @@ export class AuthGuard implements CanActivate {
             throw new UnauthorizedException('Session expired');
         }
 
-        const secret = new TextEncoder().encode(JWT_SECRET);
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
         try {
             const { payload } = await jwtVerify(token, secret);
             if (typeof payload.data !== 'string') {

@@ -14,31 +14,33 @@ import { Goal } from './goals/goal.entity';
 @Module({
     imports: [
         ConfigModule.forRoot({
-            isGlobal: true,
+            isGlobal: true
         }),
+
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
-            useFactory: (config: ConfigService) => ({
-                type: 'postgres',
-                host: 'localhost',
-                port: 5432,
-                username: 'postgres',
-                password: '06sL5U5h',
-                database: 'goalsdb',
-                entities: [User, Goal],
-                synchronize: true,
-            }),
             inject: [ConfigService],
+            useFactory: (configService: ConfigService) => ({
+                type: 'postgres',
+                host: configService.get<string>('DB_HOST'),
+                port: configService.get<number>('DB_PORT'),
+                username: configService.get<string>('DB_USERNAME'),
+                password: configService.get<string>('DB_PASSWORD'),
+                database: configService.get<string>('DB_NAME'),
+                entities: [User, Goal],
+                synchronize: true, // Set to false in production!
+            }),
         }),
+
         TypeOrmModule.forFeature([Goal]),
         TypeOrmModule.forFeature([User]),
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'public/browser')
         }),
         UsersModule,
-        GoalsModule,
+        GoalsModule
     ],
     controllers: [],
     providers: [],
 })
-export class AppModule {}
+export class AppModule { }
