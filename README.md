@@ -30,7 +30,7 @@ Personal goals manager built with nodejs and angular
 ### Deployment
 
 - Create a PostgreSQL database.
-- Configure db connection parameters in 'Goals\goals.server\src\app.module.ts'.
+- Configure db connection parameters in 'Goals\goals.server\.env'.
 - Navigate to 'Goals\goals.client' folder.
 - Run the cli command: 'g build --output-path=../goals.server/public'.
 - Navigate to 'Goals\goals.server' folder.
@@ -42,9 +42,9 @@ Personal goals manager built with nodejs and angular
 - Login.
 - In dashboard, add new goals.
 - Edit or delete a goal.
-- Set a goal public.
 - Reorder a goal by draging and dropping it over the space between other goals.
 - Nest a goal by draging and dropping it over the new parent goal.
+- Set a goal public.
 
 ## Known bugs and limitations
 
