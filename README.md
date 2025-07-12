@@ -2,7 +2,7 @@
 <tr>
 <td>
 
-### 🇬🇧 English
+### English
 
 # Goals Manager
 
@@ -64,7 +64,7 @@ Personal goals manager built with Node.js and Angular
 </td>
 <td>
 
-### 🇸🇦 العربية
+### العربية
 
 <div dir="rtl">
 
